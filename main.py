@@ -45,7 +45,7 @@ def main():
     # Differential drive:  w = (vR-vL)/WB,  vL = v - w·WB/2,  vR = v + w·WB/2
     # So pid output directly becomes angular velocity command.
     # Aggressive tuning: fast turns, strong recovery, minimal line loss
-    pid = PID(kp=80.0, ki=3.5, kd=16.0,
+    pid = PID(kp=100.0, ki=3.5, kd=16.0,
               limit=18.0, integral_limit=1.2, derivative_filter=0.10)
 
     # ── Speed Controller (State Machine) ──────────────────────────────────────
@@ -53,9 +53,9 @@ def main():
     # Reduces speed during turns for stability
     speed_controller = SpeedController(
         straight_speed=0.90,      # High speed on straight sections
-        turn_speed=0.65,          # Higher speed during turns (was 0.50)
-        error_threshold=0.008,    # Error threshold to trigger turning state (8mm)
-        smoothing=0.12            # Slightly faster transitions for quicker response
+        turn_speed=0.55,          # Moderate speed in turns for stability
+        error_threshold=0.007,    # 7mm threshold for state switching
+        smoothing=0.12            # Smooth transitions for stability
     )
 
     # ── Live visualisation ────────────────────────────────────────────────────

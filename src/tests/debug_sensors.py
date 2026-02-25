@@ -3,6 +3,10 @@
 Debug script to test sensor readings at the starting position.
 """
 
+import os
+import sys
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+
 import numpy as np
 from PIL import ImageFilter, Image
 from track.track_generator import generate_default_track
@@ -145,7 +149,7 @@ def main():
         spx, spy = world_to_pixel(sx, sy)
         draw.ellipse([spx-2, spy-2, spx+2, spy+2], fill=(0,255,0))
 
-    debug_img.save('tests/debug_sensor_positions.png')
+    debug_img.save(os.path.join(os.path.dirname(__file__), 'debug_sensor_positions.png'))
     print(f"  Saved: tests/debug_sensor_positions.png")
 
     print("="*70)

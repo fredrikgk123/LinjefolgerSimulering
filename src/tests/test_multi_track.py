@@ -5,7 +5,8 @@ Usage: python3 test_multi_track.py
 """
 
 import sys
-sys.path.insert(0, '..')
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from control.pid_controller import PID, SpeedController
 from multi_track_simulator import run_multi_track_test

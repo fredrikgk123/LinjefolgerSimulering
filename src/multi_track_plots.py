@@ -234,8 +234,8 @@ def plot_multi_track_summary_table(results_dict):
 
     plt.title('Multi-Track Performance Summary', fontsize=14, fontweight='bold', pad=20)
     plt.tight_layout()
-    plt.savefig('multi_track_table.png', dpi=150, bbox_inches='tight', facecolor='white')
-    print("✅ Saved: multi_track_table.png")
+    plt.savefig(_out('multi_track_table.png'), dpi=150, bbox_inches='tight', facecolor='white')
+    print(f"✅ Saved: output/multi_track_table.png")
     plt.show()
 
 

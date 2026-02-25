@@ -1,6 +1,6 @@
 # Line-Following Robot Simulation
 
-![Simulation Output](assets/image1.png)
+![Simulation Output](assets/for_readme/image1.png)
 *Live simulation view (left) showing the robot tracking a sine wave track, with real-time sensor array readings, lateral error, and wheel speed plots (right).*
 
 ## Structure
@@ -30,8 +30,14 @@ Simulering/
 
 ```bash
 cd src
-python3 main.py
+
+python3 main.py                                        # default sine-wave track
+python3 main.py --track ../assets/suzuka.png           # Suzuka circuit
+python3 main.py --track ../assets/my_track.png         # any track image you add
 ```
+
+> **Adding your own track:** drop any top-down track image (PNG/JPG) into `assets/` and pass it with `--track`. The robot spawns in the centre and searches for the line.  
+> Image requirements: dark line on a light background, top-down view.
 
 ## Run PID Optimizer
 

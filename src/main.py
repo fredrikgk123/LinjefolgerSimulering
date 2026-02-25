@@ -1,11 +1,17 @@
 # main.py
 
+import argparse
+import os
 import numpy as np
 from PIL import ImageFilter
 import matplotlib
-matplotlib.use("TkAgg")
+try:
+    matplotlib.use("TkAgg")
+except Exception:
+    pass  # Fall back to system default (works on Windows, Linux, macOS)
 
 from track.track_generator import generate_default_track
+from track.image_loader import load_track_image
 from sensors.qtr_array import QTRArray
 from physics.robot_model import Robot
 from control.pid_controller import PID, SpeedController
@@ -15,26 +21,48 @@ from config import *
 
 
 def main():
+    # ── CLI arguments ─────────────────────────────────────────────────────────
+    parser = argparse.ArgumentParser(description="Line-Following Robot Simulation")
+    parser.add_argument(
+        "--track",
+        type=str,
+        default=None,
+        help="Path to a custom track image (e.g. ../assets/suzuka.png). "
+             "If omitted, the default generated sine-wave track is used."
+    )
+    args = parser.parse_args()
+
     # ── Track ────────────────────────────────────────────────────────────────
-    track   = generate_default_track()
-    blurred = track.filter(ImageFilter.GaussianBlur(radius=2))
+    if args.track:
+        # Resolve path relative to main.py's location, not cwd
+        track_path = os.path.join(os.path.dirname(__file__), args.track)
+        track_path = os.path.normpath(track_path)
+        print(f"Loading custom track: {track_path}")
+        track = load_track_image(track_path)
+    else:
+        track = generate_default_track()
+
+    blurred  = track.filter(ImageFilter.GaussianBlur(radius=2))
     blur_arr = np.array(blurred, dtype=np.float32)
 
     # ── Robot start position ──────────────────────────────────────────────────
-    # Place robot at track start: x = 0.05*W
-    # Track: y = 0.5H + 0.25H·sin(3·x/W·2π)
-    # Calculate actual track position at start
     W, H = MAP_SIZE_M
-    x_start = 0.05 * W                          # track starts at 0.05W = 0.15m
-    y_start = 0.5 * H + 0.25 * H * np.sin(3 * x_start / W * 2 * np.pi)  # Actual track Y position
 
-    # Calculate heading angle to be tangent to track
-    # dy/dx = 0.25H · 3·2π/W · cos(3·x/W·2π)
-    omega = 3.0 * 2 * np.pi / W
-    slope = 0.25 * H * omega * np.cos(omega * x_start)
-    theta_start = np.arctan(slope)
+    if args.track:
+        # Custom track: spawn in centre, heading right, let robot find the line
+        x_start    = 0.5 * W
+        y_start    = 0.5 * H
+        theta_start = 0.0
+        print("Spawning robot at centre of map — searching for line...")
+    else:
+        # Generated sine-wave track: spawn exactly on the line
+        x_start = 0.05 * W
+        y_start = 0.5 * H + 0.25 * H * np.sin(3 * x_start / W * 2 * np.pi)
+        omega       = 3.0 * 2 * np.pi / W
+        slope       = 0.25 * H * omega * np.cos(omega * x_start)
+        theta_start = np.arctan(slope)
 
-    robot = Robot()
+    robot          = Robot()
     robot.position = np.array([x_start, y_start])
     robot.theta    = theta_start
 

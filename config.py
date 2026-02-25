@@ -26,7 +26,7 @@ MOTOR_TAU = 0.05          # 50 ms — faster motor response
 # COM & mass distribution
 ROBOT_MASS = 0.9          # kg
 COM_OFFSET = np.array([0.02, 0.0])  # forward shift of COM
-MU_SLIDE = 0.55           # sliding friction coefficient
+MU_SLIDE = 1.14           # sliding friction coefficient
 MU_ROLL = 0.02            # rolling resistance
 
 # ---- SIMULATION ----

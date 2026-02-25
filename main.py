@@ -8,7 +8,7 @@ matplotlib.use("TkAgg")
 from track.track_generator import generate_default_track
 from sensors.qtr_array import QTRArray
 from physics.robot_model import Robot
-from control.pid_controller import PID
+from control.pid_controller import PID, SpeedController
 from visualization.plots import setup_realtime_plot, plot_results
 from performance_metrics import analyze_tracking_performance, print_performance_report
 from config import *
@@ -44,9 +44,19 @@ def main():
     # e_y > 0 → line is to robot's LEFT  → steer LEFT  → positive ω
     # Differential drive:  w = (vR-vL)/WB,  vL = v - w·WB/2,  vR = v + w·WB/2
     # So pid output directly becomes angular velocity command.
-    # VERY AGGRESSIVE tuning for fast, responsive tracking
-    pid = PID(kp=175.0, ki=8.0, kd=3.5,
-              limit=20.0, integral_limit=1.5, derivative_filter=0.08)
+    # Aggressive tuning: fast turns, strong recovery, minimal line loss
+    pid = PID(kp=80.0, ki=3.5, kd=16.0,
+              limit=18.0, integral_limit=1.2, derivative_filter=0.10)
+
+    # ── Speed Controller (State Machine) ──────────────────────────────────────
+    # Increases speed when robot is on straight sections (low error, low turning)
+    # Reduces speed during turns for stability
+    speed_controller = SpeedController(
+        straight_speed=0.90,      # High speed on straight sections
+        turn_speed=0.65,          # Higher speed during turns (was 0.50)
+        error_threshold=0.008,    # Error threshold to trigger turning state (8mm)
+        smoothing=0.12            # Slightly faster transitions for quicker response
+    )
 
     # ── Live visualisation ────────────────────────────────────────────────────
     update_plot, robot_artist = setup_realtime_plot(blur_arr)
@@ -78,10 +88,8 @@ def main():
         # e_y > 0 → line left → steer left (+w) → correct
         w_cmd = pid.compute(e_y, DT)
 
-        # Reduce speed on sharp turns to avoid overshoot
-        # Adaptive speed: aggressive speed with less reduction in turns
-        turn_factor = abs(w_cmd) / pid.limit
-        v_cmd = 0.70 * max(0.50, 1.0 - 0.4 * turn_factor)  # Much higher base speed
+        # Use state machine for adaptive speed control
+        v_cmd = speed_controller.update(e_y, w_cmd, pid.limit)
 
         vL_cmd = v_cmd - w_cmd * WHEEL_BASE / 2
         vR_cmd = v_cmd + w_cmd * WHEEL_BASE / 2

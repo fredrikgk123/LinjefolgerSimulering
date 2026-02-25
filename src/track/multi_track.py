@@ -3,9 +3,13 @@
 Multiple track generators for testing PID controller robustness.
 """
 
+import os
 import numpy as np
 from PIL import Image, ImageDraw
 from config import MAP_SIZE_M, PX_PER_METER, TRACK_WIDTH_M
+from track.image_loader import load_track_image
+
+_ASSETS_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), '..', '..', 'assets'))
 
 
 def generate_sine_track():
@@ -106,13 +110,19 @@ def generate_s_curve_track():
     return img
 
 
+def generate_bane_fase2_track():
+    """Real competition track from bane_fase2.png."""
+    return load_track_image(os.path.join(_ASSETS_DIR, 'bane_fase2.png'))
+
+
 # Available tracks
 ALL_TRACKS = {
-    "sine": generate_sine_track,
-    "tight_sine": generate_tight_sine_track,
-    "wide_sine": generate_wide_sine_track,
-    "straight": generate_straight_track,
-    "s_curve": generate_s_curve_track,
+    "sine":        generate_sine_track,
+    "tight_sine":  generate_tight_sine_track,
+    "wide_sine":   generate_wide_sine_track,
+    "straight":    generate_straight_track,
+    "s_curve":     generate_s_curve_track,
+    "bane_fase2":  generate_bane_fase2_track,
 }
 
 

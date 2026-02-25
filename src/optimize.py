@@ -83,10 +83,10 @@ def run_bayesian_optimization(n_iterations=30):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='PID Parameter Optimizer')
-    parser.add_argument('--mode', choices=['quick', 'full', 'bayesian'],
+    parser.add_argument('--mode', '-mode', choices=['quick', 'full', 'bayesian'],
                        default='quick',
                        help='Optimization mode (default: quick)')
-    parser.add_argument('--iterations', type=int, default=30,
+    parser.add_argument('--iterations', '-iterations', type=int, default=30,
                        help='Number of iterations for Bayesian (default: 30)')
 
     args = parser.parse_args()

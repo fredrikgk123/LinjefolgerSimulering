@@ -10,6 +10,7 @@ from sensors.qtr_array import QTRArray
 from physics.robot_model import Robot
 from control.pid_controller import PID
 from visualization.plots import setup_realtime_plot, plot_results
+from performance_metrics import analyze_tracking_performance, print_performance_report
 from config import *
 
 
@@ -20,14 +21,18 @@ def main():
     blur_arr = np.array(blurred, dtype=np.float32)
 
     # ── Robot start position ──────────────────────────────────────────────────
-    # Place robot at the FIRST PEAK of the sine track (slope = 0, heading = 0°).
-    # Track: y = 0.5H + 0.25H·sin(ω·x),  ω = 6π/W
-    # Peak at ω·x = π/2  →  x = W/12
+    # Place robot at track start: x = 0.05*W
+    # Track: y = 0.5H + 0.25H·sin(3·x/W·2π)
+    # Calculate actual track position at start
     W, H = MAP_SIZE_M
-    omega = 3.0 / W * 2 * np.pi          # same formula as track_generator
-    x_start = (np.pi / 2) / omega        # = W/12 ≈ 0.25 m
-    y_start = 0.5 * H + 0.25 * H        # = 1.5 m  (peak, sin=1)
-    theta_start = 0.0                    # horizontal — slope is 0 at peak
+    x_start = 0.05 * W                          # track starts at 0.05W = 0.15m
+    y_start = 0.5 * H + 0.25 * H * np.sin(3 * x_start / W * 2 * np.pi)  # Actual track Y position
+
+    # Calculate heading angle to be tangent to track
+    # dy/dx = 0.25H · 3·2π/W · cos(3·x/W·2π)
+    omega = 3.0 * 2 * np.pi / W
+    slope = 0.25 * H * omega * np.cos(omega * x_start)
+    theta_start = np.arctan(slope)
 
     robot = Robot()
     robot.position = np.array([x_start, y_start])
@@ -39,8 +44,9 @@ def main():
     # e_y > 0 → line is to robot's LEFT  → steer LEFT  → positive ω
     # Differential drive:  w = (vR-vL)/WB,  vL = v - w·WB/2,  vR = v + w·WB/2
     # So pid output directly becomes angular velocity command.
-    pid = PID(kp=5.0, ki=0.5, kd=0.15,
-              limit=8.0, integral_limit=1.0, derivative_filter=0.2)
+    # VERY AGGRESSIVE tuning for fast, responsive tracking
+    pid = PID(kp=175.0, ki=8.0, kd=3.5,
+              limit=20.0, integral_limit=1.5, derivative_filter=0.08)
 
     # ── Live visualisation ────────────────────────────────────────────────────
     update_plot, robot_artist = setup_realtime_plot(blur_arr)
@@ -73,9 +79,9 @@ def main():
         w_cmd = pid.compute(e_y, DT)
 
         # Reduce speed on sharp turns to avoid overshoot
-        # Adaptive speed: slow down more aggressively on sharp turns
+        # Adaptive speed: aggressive speed with less reduction in turns
         turn_factor = abs(w_cmd) / pid.limit
-        v_cmd = 0.40 * max(0.30, 1.0 - 0.7 * turn_factor)
+        v_cmd = 0.70 * max(0.50, 1.0 - 0.4 * turn_factor)  # Much higher base speed
 
         vL_cmd = v_cmd - w_cmd * WHEEL_BASE / 2
         vR_cmd = v_cmd + w_cmd * WHEEL_BASE / 2

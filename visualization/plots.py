@@ -53,8 +53,8 @@ def setup_realtime_plot(map_arr):
     ax_speed  = fig.add_subplot(gs[2, 1])
 
     # ── Track map ─────────────────────────────────────────────────────────────
-    # Invert the grayscale so the dark line shows against a dark background
-    ax_map.imshow(255 - map_arr[::-1],
+    # Show track as-is: black line (0) on white background (255)
+    ax_map.imshow(map_arr[::-1],
                   cmap="gray", vmin=0, vmax=255,
                   extent=[0, W, 0, H],
                   interpolation="bilinear", aspect="equal")
@@ -75,10 +75,10 @@ def setup_realtime_plot(map_arr):
     ax_map.add_patch(robot_circle)
     heading_line, = ax_map.plot([], [], color="white", lw=2, zorder=8)
 
-    # Sensor dots on the map
+    # Sensor dots on the map - green when on line, gray when off
     sensor_scat = ax_map.scatter(
         np.zeros(n), np.zeros(n),
-        c=[SENSOR_OFF] * n, s=16, zorder=6, linewidths=0)
+        c=["gray"] * n, s=16, zorder=6, linewidths=0)
 
     # ── Sensor bar chart ──────────────────────────────────────────────────────
     _style_ax(ax_sensor, "Sensor Array")
@@ -173,7 +173,7 @@ def setup_realtime_plot(map_arr):
         spd_L.set_data(tarr, vL_buf)
         spd_R.set_data(tarr, vR_buf)
         ax_speed.set_xlim(t_lo, t_hi)
-        ax_speed.set_ylim(-0.42, 0.42)
+        ax_speed.set_ylim(0.0, 1.0)
 
         fig.canvas.draw_idle()
         fig.canvas.flush_events()
@@ -204,7 +204,8 @@ def plot_results(traj, sensor_log, err_log, map_arr=None):
     cbar.ax.yaxis.set_tick_params(color="#8b949e", labelsize=7)
 
     _style_ax(ax_map, "Final Trajectory")
-    ax_map.set_xlabel("x (m)", color="#8b949e"); ax_map.set_ylabel("y (m)", color="#8b949e")
+    ax_map.set_xlabel("x (m)", color="#8b949e")
+    ax_map.set_ylabel("y (m)", color="#8b949e")
 
     ax_err.plot(t, err_log, color=ERR_COL, lw=1.2)
     ax_err.axhline(0, color=ZERO_COL, lw=0.8)

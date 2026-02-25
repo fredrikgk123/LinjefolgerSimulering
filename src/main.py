@@ -87,7 +87,7 @@ def main():
     # Differential drive:  w = (vR-vL)/WB,  vL = v - w·WB/2,  vR = v + w·WB/2
     # So pid output directly becomes angular velocity command.
     # Aggressive tuning: fast turns, strong recovery, minimal line loss
-    pid = PID(kp=120.0, ki=3.9, kd=18.0,
+    pid = PID(kp=120.0, ki=4.0, kd=18.0,
               limit=22.0, integral_limit=1.2, derivative_filter=0.10)
 
     # ── Speed Controller (State Machine) ──────────────────────────────────────

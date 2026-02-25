@@ -28,11 +28,16 @@ def _style_ax(ax, title):
         sp.set_edgecolor(BORDER)
 
 
-def setup_realtime_plot(map_arr):
+def setup_realtime_plot(map_arr, spawn=None, sf_radius=0.10):
     """
     Creates the live dashboard figure.
     Returns (update_fn, robot_artist).
-    update_fn(robot, readings, e_y, vL, vR, t) refreshes all panels.
+    update_fn(robot, readings, e_y, vL, vR, t, lap_time, elapsed) refreshes all panels.
+
+    Args:
+        map_arr:   2-D grayscale array of the track
+        spawn:     (x, y) of start/finish centre in world metres (optional)
+        sf_radius: radius of the start/finish zone in metres
     """
     W, H = MAP_SIZE_M
     n = QTR_CHANNELS
@@ -81,6 +86,27 @@ def setup_realtime_plot(map_arr):
         np.zeros(n), np.zeros(n),
         c=["gray"] * n, s=16, zorder=6, linewidths=0)
 
+    # ── Start/finish zone ─────────────────────────────────────────────────────
+    if spawn is not None:
+        sx, sy = spawn
+        sf_fill = plt.Circle((sx, sy), sf_radius,
+                              color="#00ff88", alpha=0.18, zorder=2)
+        sf_ring = plt.Circle((sx, sy), sf_radius,
+                              fill=False, edgecolor="#00ff88",
+                              linewidth=2.0, linestyle="--", zorder=4)
+        ax_map.add_patch(sf_fill)
+        ax_map.add_patch(sf_ring)
+        ax_map.plot(sx, sy, "o", color="#00ff88", markersize=6, zorder=5)
+
+    # ── Lap timer text ────────────────────────────────────────────────────────
+    timer_text = ax_map.text(
+        0.02, 0.97, "", transform=ax_map.transAxes,
+        fontsize=11, fontweight="bold", color="#00ff88",
+        va="top", ha="left", zorder=10,
+        bbox=dict(boxstyle="round,pad=0.3", facecolor=BG,
+                  edgecolor="#00ff88", alpha=0.85)
+    )
+
     # ── Sensor bar chart ──────────────────────────────────────────────────────
     _style_ax(ax_sensor, "Sensor Array")
     bar_xs = (np.arange(n) - (n - 1) / 2) * QTR_SPACING_M * 100   # cm
@@ -120,12 +146,23 @@ def setup_realtime_plot(map_arr):
     t_log, err_buf, vL_buf, vR_buf = [], [], [], []
     ARROW = QTR_SENSOR_OFFSET_M  # use same length as sensor offset for the heading line
 
-    def update(robot, readings, e_y, vL, vR, t):
+    def update(robot, readings, e_y, vL, vR, t,
+               lap_time=None, elapsed=None):
         px, py = float(robot.position[0]), float(robot.position[1])
         traj_x.append(px); traj_y.append(py)
         t_log.append(t)
         err_buf.append(e_y)
         vL_buf.append(vL); vR_buf.append(vR)
+
+        # ── Timer text ────────────────────────────────────────────────────────
+        if lap_time is not None:
+            timer_text.set_text(f"LAP: {lap_time:.3f} s")
+            timer_text.set_color("#ffd700")
+            timer_text.get_bbox_patch().set_edgecolor("#ffd700")
+        elif elapsed is not None:
+            timer_text.set_text(f"TIME: {elapsed:.2f} s")
+        else:
+            timer_text.set_text("TIME: --")
 
         # Path
         path_line.set_data(traj_x, traj_y)

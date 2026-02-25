@@ -21,7 +21,9 @@ Simulering/
 │   ├── main.py                    ← Entry point
 │   ├── config.py                  ← Simulation parameters (speed, DT, map size…)
 │   ├── performance_metrics.py     ← RMS / settling time calculations
-│   ├── optimize.py                ← PID optimizer CLI
+│   ├── optimize.py                ← General PID optimizer CLI
+│   ├── lap_optimizer.py           ← Lap-time optimizer for bane_fase2
+│   ├── preview_track.py           ← Plot track with start/finish zone for inspection
 │   ├── pid_optimizer.py           ← ML optimization engine (grid / bayesian)
 │   ├── multi_track_simulator.py   ← Run simulations across multiple tracks
 │   ├── multi_track_plots.py       ← Stacked list / bar / table visualizations
@@ -73,20 +75,64 @@ python3 main.py --track ../assets/my_track.png    # Any image you add
 > The robot spawns at the centre and searches for the line automatically.  
 > Image requirements: **dark line on a light background, top-down view**.
 
-**Hardcoding a spawn point** for a known track (so the robot starts exactly on the line):  
-Open `src/main.py` and add an entry to `SPAWN_REGISTRY`:
+**Hardcoding a spawn point** for a known track — edit `src/config.py`:
 ```python
 SPAWN_REGISTRY = {
-    "suzuka.png":     {"x": 0.55, "y": 0.80, "theta": -0.80},
     "bane_fase2.png": {"x": 2.00, "y": 0.14, "theta":  0.00},
-    "my_track.png":   {"x": 0.20, "y": 0.80, "theta":  1.57},  # ← add yours
+    "suzuka.png":     {"x": 0.55, "y": 0.65, "theta": -0.80},
+    "my_track.png":   {"x": 0.20, "y": 0.80, "theta":  1.57},  # <- add yours
 }
 ```
 `x`/`y` are in metres (world coordinates, origin = bottom-left), `theta` in radians (`0` = pointing right, `π/2` = pointing up).
 
 ---
 
-## Run PID Optimizer
+## Run Lap-Time Optimizer (bane_fase2)
+
+Optimizes PID + SpeedController to **minimize lap time** on any track. Uses CMA-ES (Covariance Matrix Adaptation Evolution Strategy) by default — an evolutionary algorithm that adapts its search direction automatically, much more efficient than grid or random search.
+
+```bash
+cd src
+
+# CMA-ES (recommended) #30 iterations, default = ~15 minutes
+python3 lap_optimizer.py --track bane_fase2.png --iterations 60   # more generations
+python3 lap_optimizer.py --track suzuka.png                        # different track
+
+# Random search — fast baseline
+python3 lap_optimizer.py --mode random --iterations 50
+
+# Grid — exhaustive (very slow)
+python3 lap_optimizer.py --mode grid
+```
+
+| Mode | Algorithm | Notes |
+|------|-----------|-------|
+| `cmaes` | CMA-ES evolution strategy | **Recommended** — adapts to problem geometry |
+| `random` | Uniform random sampling | Fast baseline |
+| `grid` | Exhaustive grid | Very slow, use only for small spaces |
+
+| Setting | Value | Description |
+|---------|-------|-------------|
+| Start/finish zone | 10 cm radius | Robot must re-enter this after leaving |
+| Invalid if | line lost > 1.0 s | Continuous line loss = off track = DNF |
+| Max lap time | 60 s | DNF if not completed within this |
+
+Results saved to `output/lap_<track>_<timestamp>.json`. Best parameters printed as ready-to-paste code.
+
+**Adding a new track:** add a spawn entry to `SPAWN_REGISTRY` in `src/config.py`:
+```python
+SPAWN_REGISTRY = {
+    "bane_fase2.png": {"x": 2.00, "y": 0.14, "theta": 0.0},
+    "my_track.png":   {"x": 1.50, "y": 0.50, "theta": 0.0},  # <- add yours
+}
+```
+This one entry is used automatically by `main.py`, `lap_optimizer.py` and `multi_track_simulator.py`.
+
+---
+
+## Run General PID Optimizer
+
+Optimizes PID + SpeedController across all tracks in the registry (`sine`, `bane_fase2`, `suzuka`).
 
 ```bash
 cd src
@@ -108,7 +154,12 @@ cd src/tests
 python3 test_multi_track.py
 ```
 
-Runs your current PID on 5 different track geometries and saves comparison plots to `output/`:
+Runs your current PID on all tracks in the registry (`sine`, `bane_fase2`, `suzuka`) and saves comparison plots to `output/`:
+
+> **Adding a track to the registry:** add a line to `ALL_TRACKS` in `src/track/multi_track.py`:
+> ```python
+> "my_track": lambda: _load_asset("my_track.png"),
+> ```
 
 | Plot | Description |
 |------|-------------|

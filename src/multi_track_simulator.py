@@ -32,14 +32,13 @@ def run_simulation_on_track(track_name, pid, speed_controller, show_visualizatio
     blurred = track.filter(ImageFilter.GaussianBlur(radius=2))
     blur_arr = np.array(blurred, dtype=np.float32)
 
-    # Robot start position — per-track spawn registry
+    # Robot start position — from config.py SPAWN_REGISTRY
     W, H = MAP_SIZE_M
-    SPAWN_REGISTRY = {
-        "bane_fase2": {"x": 2.00, "y": 0.14, "theta": 0.0},
-    }
 
-    if track_name in SPAWN_REGISTRY:
-        sp = SPAWN_REGISTRY[track_name]
+    # multi_track uses track name (no extension) as key, so map accordingly
+    spawn_key = track_name + ".png"
+    if spawn_key in SPAWN_REGISTRY:
+        sp = SPAWN_REGISTRY[spawn_key]
         x_start, y_start, theta_start = sp["x"], sp["y"], sp["theta"]
     else:
         # Default: sine-wave start position

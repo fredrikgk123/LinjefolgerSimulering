@@ -19,6 +19,9 @@ from visualization.plots import setup_realtime_plot, plot_results
 from performance_metrics import analyze_tracking_performance, print_performance_report
 from config import *
 
+# START_FINISH_RADIUS, MIN_DEPARTURE_DIST, MAX_LAP_TIME, NOISE_SEED
+# are all defined in config.py — edit there to affect both main.py and lap_optimizer.py
+
 
 def main():
     # ── CLI arguments ─────────────────────────────────────────────────────────
@@ -45,17 +48,8 @@ def main():
     blurred  = track.filter(ImageFilter.GaussianBlur(radius=2))
     blur_arr = np.array(blurred, dtype=np.float32)
 
-    # ── Spawn registry ────────────────────────────────────────────────────────
-    # Hardcoded start positions for known tracks.
-    # x, y in metres (world coords), theta in radians (0 = pointing right).
-    # To add a new track: run with centre-spawn first, note where the line is,
-    # then add an entry here using the image filename as key.
-    SPAWN_REGISTRY = {
-        "suzuka.png":    {"x": 0.55, "y": 0.8, "theta": -0.80},
-        "bane_fase2.png": {"x": 2.00, "y": 0.14, "theta": 0.0},
-    }
-
     # ── Robot start position ──────────────────────────────────────────────────
+    # Spawn positions are defined in config.py → SPAWN_REGISTRY
     W, H = MAP_SIZE_M
 
     if args.track:
@@ -64,7 +58,7 @@ def main():
             sp = SPAWN_REGISTRY[track_filename]
             x_start, y_start, theta_start = sp["x"], sp["y"], sp["theta"]
             print(f"Using hardcoded spawn for '{track_filename}': "
-                  f"({x_start}, {y_start}), θ={theta_start:.2f} rad")
+                  f"({x_start}, {y_start}), theta={theta_start:.2f} rad")
         else:
             # Unknown track: spawn at centre and search
             x_start, y_start, theta_start = 0.5 * W, 0.5 * H, 0.0
@@ -90,27 +84,37 @@ def main():
     # Differential drive:  w = (vR-vL)/WB,  vL = v - w·WB/2,  vR = v + w·WB/2
     # So pid output directly becomes angular velocity command.
     # Aggressive tuning: fast turns, strong recovery, minimal line loss
-    pid = PID(kp=100.0, ki=3.5, kd=16.0,
-              limit=18.0, integral_limit=1.2, derivative_filter=0.10)
+    pid = PID(kp=120.0, ki=4, kd=17.0,
+              limit=22.0, integral_limit=1.2, derivative_filter=0.10)
 
     # ── Speed Controller (State Machine) ──────────────────────────────────────
     # Increases speed when robot is on straight sections (low error, low turning)
     # Reduces speed during turns for stability
     speed_controller = SpeedController(
-        straight_speed=0.90,      # High speed on straight sections
-        turn_speed=0.55,          # Moderate speed in turns for stability
+        straight_speed=0.64,      # High speed on straight sections
+        turn_speed=0.59,          # Moderate speed in turns for stability
         error_threshold=0.007,    # 7mm threshold for state switching
         smoothing=0.12            # Smooth transitions for stability
     )
 
     # ── Live visualisation ────────────────────────────────────────────────────
-    update_plot, robot_artist = setup_realtime_plot(blur_arr)
+    update_plot, robot_artist = setup_realtime_plot(
+        blur_arr,
+        spawn=(x_start, y_start),
+        sf_radius=START_FINISH_RADIUS
+    )
 
     traj, err_log, sensor_log = [], [], []
-    last_e_y   = 0.0
-    LINE_THRESH = 0.08    # min Σ(weights) to trust centroid reading
-    RENDER_EVERY = 8      # render every 8 steps → ~25 fps
+    last_e_y     = 0.0
+    LINE_THRESH  = 0.08
+    RENDER_EVERY = 8
 
+    # ── Lap timer state ───────────────────────────────────────────────────────
+    lap_started = False
+    lap_time    = None
+    lap_start_t = 0.0
+
+    np.random.seed(NOISE_SEED)   # deterministic sensor noise — matches optimizer
     t    = 0.0
     step = 0
 
@@ -145,17 +149,37 @@ def main():
         err_log.append(e_y)
         sensor_log.append(readings.copy())
 
+        # ── Lap timer ─────────────────────────────────────────────────────────
+        dist_to_start = np.hypot(robot.position[0] - x_start,
+                                 robot.position[1] - y_start)
+        if not lap_started and dist_to_start > MIN_DEPARTURE_DIST:
+            lap_started = True
+            lap_start_t = t
+        if lap_started and lap_time is None and dist_to_start < START_FINISH_RADIUS:
+            lap_time = t - lap_start_t
+            print(f"\n*** LAP COMPLETE — time: {lap_time:.3f} s ***\n")
+            # Render the final frame then stop immediately
+            update_plot(robot, readings, e_y, robot.vL, robot.vR, t,
+                        lap_time=lap_time, elapsed=lap_time)
+            break
+
         # ── Render ────────────────────────────────────────────────────────────
         if step % RENDER_EVERY == 0:
-            update_plot(robot, readings, e_y, robot.vL, robot.vR, t)
+            elapsed = (t - lap_start_t) if lap_started and lap_time is None else lap_time
+            update_plot(robot, readings, e_y, robot.vL, robot.vR, t,
+                        lap_time=lap_time, elapsed=elapsed if lap_started else None)
 
         t    += DT
         step += 1
 
     # ── Summary ───────────────────────────────────────────────────────────────
-    # Calculate and print performance metrics
     metrics = analyze_tracking_performance(err_log, DT)
     print_performance_report(metrics)
+
+    if lap_time is not None:
+        print(f"Lap time: {lap_time:.3f} s")
+    else:
+        print("No lap completed (robot did not return to start/finish zone)")
 
     plot_results(traj, sensor_log, err_log,
                  map_arr=np.array(blurred, dtype=np.uint8))

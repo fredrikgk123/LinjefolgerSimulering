@@ -3,10 +3,24 @@
 Visualize multi-track results in a stacked list format.
 """
 
+import os
+from datetime import datetime
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import numpy as np
 from matplotlib.gridspec import GridSpec
+
+# Always save to project output/ regardless of cwd
+_OUTPUT_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), '..', 'output'))
+os.makedirs(_OUTPUT_DIR, exist_ok=True)
+
+_TS = datetime.now().strftime("%Y%m%d_%H%M%S")   # one timestamp per session
+
+
+def _out(filename):
+    """Return output path with datetime tag inserted before extension."""
+    name, ext = os.path.splitext(filename)
+    return os.path.join(_OUTPUT_DIR, f"{name}_{_TS}{ext}")
 
 
 def plot_multi_track_results(results_dict):
@@ -110,7 +124,7 @@ def plot_multi_track_results(results_dict):
         # ax.text(9.8, 0.5, rank_text, fontsize=14, va='center', ha='right', zorder=2)
 
     plt.tight_layout()
-    plt.savefig('multi_track_results.png', dpi=150, bbox_inches='tight', facecolor='white')
+    plt.savefig(_out('multi_track_results.png'), dpi=150, bbox_inches='tight', facecolor='white')
     print("✅ Saved: multi_track_results.png")
     plt.show()
 
@@ -164,7 +178,7 @@ def plot_multi_track_comparison_bars(results_dict):
         ax.set_xticklabels(track_names, rotation=45, ha='right')
 
     plt.tight_layout()
-    plt.savefig('multi_track_bars.png', dpi=150, bbox_inches='tight', facecolor='white')
+    plt.savefig(_out('multi_track_bars.png'), dpi=150, bbox_inches='tight', facecolor='white')
     print("✅ Saved: multi_track_bars.png")
     plt.show()
 
@@ -256,4 +270,3 @@ if __name__ == "__main__":
         plot_multi_track_comparison_bars(results)
         plot_multi_track_summary_table(results)
         print("\n✅ All visualizations generated!")
-

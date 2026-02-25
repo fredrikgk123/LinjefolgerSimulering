@@ -69,8 +69,8 @@ def run_bayesian_optimization(n_iterations=30):
         'ki': np.linspace(2.5, 5.5, 15),
         'kd': np.linspace(15, 25, 15),
         'limit': np.linspace(16, 24, 10),
-        'straight_speed': np.linspace(0.80, 1.0, 10),
-        'turn_speed': np.linspace(0.55, 0.80, 10),
+        'straight_speed': np.linspace(0.80, 1.5, 10),
+        'turn_speed': np.linspace(0.55, 1.00, 10),
     }
 
     optimizer = PIDOptimizer(param_ranges=param_ranges, optimization_method='bayesian')

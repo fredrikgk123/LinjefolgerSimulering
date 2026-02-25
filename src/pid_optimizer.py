@@ -4,13 +4,16 @@ Machine Learning loop to optimize PID controller parameters.
 Tests multiple parameter combinations and finds the best tuning.
 """
 
+import os
 import numpy as np
 import json
 from datetime import datetime
 from control.pid_controller import PID, SpeedController
 from multi_track_simulator import run_multi_track_test
-from multi_track_plots import plot_multi_track_results, plot_multi_track_comparison_bars, plot_multi_track_summary_table
+from multi_track_plots import plot_multi_track_results, plot_multi_track_comparison_bars
 
+_OUTPUT_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), '..', 'output'))
+os.makedirs(_OUTPUT_DIR, exist_ok=True)
 
 class PIDOptimizer:
     """Optimize PID parameters using grid search or bayesian optimization."""
@@ -211,8 +214,11 @@ class PIDOptimizer:
         sorted_results = sorted(self.results, key=lambda x: x['avg_rms_error'])
         return sorted_results[:n]
 
-    def save_results(self, filename='optimization_results.json'):
-        """Save optimization results to file."""
+    def save_results(self, filename=None):
+        """Save optimization results to output/ with a datetime tag."""
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        fname = filename or f"optimization_results_{ts}.json"
+        path = os.path.join(_OUTPUT_DIR, fname)
         data = {
             'timestamp': datetime.now().isoformat(),
             'total_iterations': self.iteration,
@@ -229,11 +235,9 @@ class PIDOptimizer:
                 for r in self.results
             ]
         }
-
-        with open(filename, 'w') as f:
+        with open(path, 'w') as f:
             json.dump(data, f, indent=2)
-
-        print(f"\n✅ Results saved to: {filename}")
+        print(f"\n✅ Results saved to: output/{fname}")
 
     def plot_optimization_results(self):
         """Generate visualizations for best result."""

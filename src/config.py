@@ -31,4 +31,32 @@ MU_ROLL = 0.02            # rolling resistance
 
 # ---- SIMULATION ----
 DT = 0.005
-SIM_TIME = 30.0
+SIM_TIME = 45.0   # upper limit — simulation stops early if lap is completed
+
+# ---- LAP TIMER ----
+# Shared by main.py and lap_optimizer.py — change here to affect both
+START_FINISH_RADIUS = 0.10   # metres — robot must re-enter this to finish a lap
+MIN_DEPARTURE_DIST  = 0.30   # metres — must leave start zone before finish counts
+MAX_LAP_TIME        = 60.0   # seconds — DNF cutoff in optimizer
+
+# A run is invalid if the robot loses the line for more than this many seconds
+# (total sensor weight stays below LINE_THRESH continuously)
+MAX_LINE_LOSS_TIME  = 1.0    # seconds — more than this = truly off track / DNF
+
+# ---- SENSOR NOISE SEED ----
+# Fixed seed makes every simulation deterministic.
+# main.py and lap_optimizer.py both set np.random.seed(NOISE_SEED) before running.
+# Change to None for non-deterministic runs.
+NOISE_SEED = 42
+
+# ---- SPAWN REGISTRY ----
+# Single source of truth for all spawn positions.
+# Used by: main.py, multi_track_simulator.py, lap_optimizer.py
+# x, y  : world coordinates in metres (origin = bottom-left)
+# theta  : heading in radians (0 = pointing right, pi/2 = pointing up)
+SPAWN_REGISTRY = {
+    "bane_fase2.png": {"x": 3.00, "y": 0.14, "theta":  0.00},
+    "suzuka.png":     {"x": 0.55, "y": 0.68, "theta": -0.40},
+    # "my_track.png": {"x": 1.00, "y": 0.50, "theta":  0.00},  # add yours here
+}
+

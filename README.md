@@ -47,7 +47,9 @@ Simulering/
 │       └── test_setup.py
 ├── assets/                        ← Track images (add your own here)
 │   ├── suzuka.png
-│   └── bane_fase2.png
+│   ├── bane_fase2.png
+│   └── for_readme/
+│       └── image1.png
 ├── docs/                          ← Detailed documentation
 ├── output/                        ← Generated plots and results (auto-created)
 └── README.md
@@ -62,13 +64,24 @@ cd src
 
 python3 main.py                                   # default sine-wave track
 python3 main.py --track ../assets/suzuka.png      # Suzuka circuit
-python3 main.py --track ../assets/bane_fase2.png  # Custom track
+python3 main.py --track ../assets/bane_fase2.png  # Competition track
 python3 main.py --track ../assets/my_track.png    # Any image you add
 ```
 
 > **Adding your own track:** drop any top-down PNG/JPG into `assets/` and pass it with `--track`.  
 > The robot spawns at the centre and searches for the line automatically.  
 > Image requirements: **dark line on a light background, top-down view**.
+
+**Hardcoding a spawn point** for a known track (so the robot starts exactly on the line):  
+Open `src/main.py` and add an entry to `SPAWN_REGISTRY`:
+```python
+SPAWN_REGISTRY = {
+    "suzuka.png":     {"x": 0.55, "y": 1.60, "theta": 0.0},
+    "bane_fase2.png": {"x": 0.50, "y": 1.00, "theta": 0.0},
+    "my_track.png":   {"x": 0.20, "y": 0.80, "theta": 1.57},  # ← add yours
+}
+```
+`x`/`y` are in metres (world coordinates, origin = bottom-left), `theta` in radians (`0` = pointing right, `π/2` = pointing up).
 
 ---
 
@@ -77,10 +90,10 @@ python3 main.py --track ../assets/my_track.png    # Any image you add
 ```bash
 cd src
 
-python3 optimize.py --mode quick                  # ~13 min  | 27 combinations   | recommended
-python3 optimize.py --mode bayesian               # ~75 min  | 30 random samples  | refinement
-python3 optimize.py --mode bayesian --iterations 100  # ~4 hrs | more samples
-python3 optimize.py --mode full                   # 50+ hrs  | 6400 combinations  | exhaustive
+python3 optimize.py --mode quick                      # ~13 min  | 27 combinations  | recommended
+python3 optimize.py --mode bayesian                   # ~75 min  | 30 random samples | refinement
+python3 optimize.py --mode bayesian --iterations 100  # ~4 hrs   | more samples
+python3 optimize.py --mode full                       # 50+ hrs  | 6400 combinations | exhaustive
 ```
 
 Results saved to `output/optimization_results.json`. Best parameters printed as ready-to-paste code.
@@ -110,9 +123,11 @@ All key parameters live in `src/config.py`:
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `SIM_TIME` | 12.0 s | Simulation duration |
+| `SIM_TIME` | 15.0 s | Simulation duration |
 | `DT` | 0.005 s | Physics timestep |
-| `MAP_SIZE_M` | (3.0, 2.0) | Track area in metres |
+| `MAP_SIZE_M` | (4.0, 2.0) | Track area in metres |
 | `TRACK_WIDTH_M` | 0.020 m | Line width |
 | `QTR_CHANNELS` | 25 | Number of sensor channels |
 | `MAX_WHEEL_SPEED` | 1.0 m/s | Motor speed limit |
+| `WHEEL_BASE` | 0.12 m | Distance between wheels |
+| `MU_SLIDE` | 1.14 | Sliding friction coefficient |

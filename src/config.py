@@ -5,7 +5,7 @@ import numpy as np
 # ---- TRACK ----
 TRACK_WIDTH_M = 0.020     # 20 mm — competition standard (increased from 15mm)
 PX_PER_METER = 500        # high resolution for realism
-MAP_SIZE_M = (3.0, 2.0)   # width, height in meters
+MAP_SIZE_M = (4.0, 2.0)   # width, height in meters
 
 # ---- QTR-HD-25RC SENSOR ----
 QTR_CHANNELS = 25
@@ -31,4 +31,4 @@ MU_ROLL = 0.02            # rolling resistance
 
 # ---- SIMULATION ----
 DT = 0.005
-SIM_TIME = 15.0
+SIM_TIME = 30.0

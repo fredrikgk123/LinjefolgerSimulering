@@ -45,15 +45,32 @@ def main():
     blurred  = track.filter(ImageFilter.GaussianBlur(radius=2))
     blur_arr = np.array(blurred, dtype=np.float32)
 
+    # ── Spawn registry ────────────────────────────────────────────────────────
+    # Hardcoded start positions for known tracks.
+    # x, y in metres (world coords), theta in radians (0 = pointing right).
+    # To add a new track: run with centre-spawn first, note where the line is,
+    # then add an entry here using the image filename as key.
+    SPAWN_REGISTRY = {
+        "suzuka.png":    {"x": 0.55, "y": 0.8, "theta": -0.80},
+        "bane_fase2.png": {"x": 2.00, "y": 0.14, "theta": 0.0},
+    }
+
     # ── Robot start position ──────────────────────────────────────────────────
     W, H = MAP_SIZE_M
 
     if args.track:
-        # Custom track: spawn in centre, heading right, let robot find the line
-        x_start    = 0.5 * W
-        y_start    = 0.5 * H
-        theta_start = 0.0
-        print("Spawning robot at centre of map — searching for line...")
+        track_filename = os.path.basename(track_path)
+        if track_filename in SPAWN_REGISTRY:
+            sp = SPAWN_REGISTRY[track_filename]
+            x_start, y_start, theta_start = sp["x"], sp["y"], sp["theta"]
+            print(f"Using hardcoded spawn for '{track_filename}': "
+                  f"({x_start}, {y_start}), θ={theta_start:.2f} rad")
+        else:
+            # Unknown track: spawn at centre and search
+            x_start, y_start, theta_start = 0.5 * W, 0.5 * H, 0.0
+            print(f"No spawn entry for '{track_filename}' — "
+                  f"spawning at centre and searching for line.")
+            print(f"  Tip: add it to SPAWN_REGISTRY in main.py for exact placement.")
     else:
         # Generated sine-wave track: spawn exactly on the line
         x_start = 0.05 * W

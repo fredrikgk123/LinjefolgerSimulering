@@ -2,7 +2,6 @@
 
 import argparse
 import os
-import numpy as np
 from PIL import ImageFilter
 import matplotlib
 try:
@@ -36,10 +35,14 @@ def main():
     args = parser.parse_args()
 
     # ── Track ────────────────────────────────────────────────────────────────
+    # Ensure track_path is defined before use
     if args.track:
-        # Resolve path relative to main.py's location, not cwd
         track_path = os.path.join(os.path.dirname(__file__), args.track)
         track_path = os.path.normpath(track_path)
+    else:
+        track_path = None  # Default to None if no track is provided
+
+    if track_path:
         print(f"Loading custom track: {track_path}")
         track = load_track_image(track_path)
     else:
@@ -52,7 +55,7 @@ def main():
     # Spawn positions are defined in config.py → SPAWN_REGISTRY
     W, H = MAP_SIZE_M
 
-    if args.track:
+    if track_path:
         track_filename = os.path.basename(track_path)
         if track_filename in SPAWN_REGISTRY:
             sp = SPAWN_REGISTRY[track_filename]
@@ -84,15 +87,15 @@ def main():
     # Differential drive:  w = (vR-vL)/WB,  vL = v - w·WB/2,  vR = v + w·WB/2
     # So pid output directly becomes angular velocity command.
     # Aggressive tuning: fast turns, strong recovery, minimal line loss
-    pid = PID(kp=120.0, ki=4, kd=17.0,
+    pid = PID(kp=120.0, ki=3.9, kd=18.0,
               limit=22.0, integral_limit=1.2, derivative_filter=0.10)
 
     # ── Speed Controller (State Machine) ──────────────────────────────────────
     # Increases speed when robot is on straight sections (low error, low turning)
     # Reduces speed during turns for stability
     speed_controller = SpeedController(
-        straight_speed=0.64,      # High speed on straight sections
-        turn_speed=0.59,          # Moderate speed in turns for stability
+        straight_speed=0.91,      # High speed on straight sections
+        turn_speed=0.70,          # Moderate speed in turns for stability
         error_threshold=0.007,    # 7mm threshold for state switching
         smoothing=0.12            # Smooth transitions for stability
     )
@@ -168,6 +171,16 @@ def main():
             elapsed = (t - lap_start_t) if lap_started and lap_time is None else lap_time
             update_plot(robot, readings, e_y, robot.vL, robot.vR, t,
                         lap_time=lap_time, elapsed=elapsed if lap_started else None)
+
+        # Handle line loss termination
+        if total_w <= LINE_THRESH:
+            line_loss_t += DT
+        else:
+            line_loss_t = 0.0
+
+        if line_loss_t > MAX_LINE_LOSS_TIME:
+            print("*** RUN INVALID — line lost for too long ***")
+            break
 
         t    += DT
         step += 1

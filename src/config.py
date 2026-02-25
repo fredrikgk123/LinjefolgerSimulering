@@ -55,8 +55,10 @@ NOISE_SEED = 42
 # x, y  : world coordinates in metres (origin = bottom-left)
 # theta  : heading in radians (0 = pointing right, pi/2 = pointing up)
 SPAWN_REGISTRY = {
-    "bane_fase2.png": {"x": 3.00, "y": 0.14, "theta":  0.00},
+    "bane_fase2.png": {"x": 1.00, "y": 0.14, "theta":  0.00},
     "suzuka.png":     {"x": 0.55, "y": 0.68, "theta": -0.40},
     # "my_track.png": {"x": 1.00, "y": 0.50, "theta":  0.00},  # add yours here
 }
 
+# Define MAX_LATERAL_ERROR as a global constant
+MAX_LATERAL_ERROR = 0.05  # Maximum lateral error in meters (adjust as needed)

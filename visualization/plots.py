@@ -53,8 +53,9 @@ def setup_realtime_plot(map_arr):
     ax_speed  = fig.add_subplot(gs[2, 1])
 
     # ── Track map ─────────────────────────────────────────────────────────────
-    # Show track as-is: black line (0) on white background (255)
-    ax_map.imshow(map_arr[::-1],
+    # Track data is already inverted during generation (line 18 of track_generator.py)
+    # Don't invert again - display as-is to match what robot is tracking
+    ax_map.imshow(map_arr,
                   cmap="gray", vmin=0, vmax=255,
                   extent=[0, W, 0, H],
                   interpolation="bilinear", aspect="equal")
@@ -173,7 +174,7 @@ def setup_realtime_plot(map_arr):
         spd_L.set_data(tarr, vL_buf)
         spd_R.set_data(tarr, vR_buf)
         ax_speed.set_xlim(t_lo, t_hi)
-        ax_speed.set_ylim(0.0, 1.0)
+        ax_speed.set_ylim(-0.2, 1.0)
 
         fig.canvas.draw_idle()
         fig.canvas.flush_events()
@@ -193,7 +194,7 @@ def plot_results(traj, sensor_log, err_log, map_arr=None):
     fig.suptitle("Simulation Summary", color="white", fontsize=14, y=0.97)
 
     if map_arr is not None:
-        ax_map.imshow(255 - map_arr[::-1],
+        ax_map.imshow(map_arr,
                       cmap="gray", vmin=0, vmax=255,
                       extent=[0, W, 0, H],
                       interpolation="bilinear", aspect="equal")

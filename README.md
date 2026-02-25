@@ -35,7 +35,7 @@ Simulering/
 │   ├── track/
 │   │   ├── track_generator.py     ← Default sine-wave track (generated)
 │   │   ├── image_loader.py        ← Universal loader for custom track images
-│   │   └── multi_track.py         ← 5 built-in tracks for optimizer testing
+│   │   └── multi_track.py         ← Built-in tracks for optimizer testing
 │   ├── visualization/
 │   │   ├── plots.py               ← Live + summary plots
 │   │   └── sensor_overlay.py      ← Sensor reading overlay
@@ -49,7 +49,8 @@ Simulering/
 │   ├── suzuka.png
 │   ├── bane_fase2.png
 │   └── for_readme/
-│       └── image1.png
+│       ├── image1.png
+│       └── demo.gif
 ├── docs/                          ← Detailed documentation
 ├── output/                        ← Generated plots and results (auto-created)
 └── README.md
@@ -76,9 +77,9 @@ python3 main.py --track ../assets/my_track.png    # Any image you add
 Open `src/main.py` and add an entry to `SPAWN_REGISTRY`:
 ```python
 SPAWN_REGISTRY = {
-    "suzuka.png":     {"x": 0.55, "y": 1.60, "theta": 0.0},
-    "bane_fase2.png": {"x": 0.50, "y": 1.00, "theta": 0.0},
-    "my_track.png":   {"x": 0.20, "y": 0.80, "theta": 1.57},  # ← add yours
+    "suzuka.png":     {"x": 0.55, "y": 0.80, "theta": -0.80},
+    "bane_fase2.png": {"x": 2.00, "y": 0.14, "theta":  0.00},
+    "my_track.png":   {"x": 0.20, "y": 0.80, "theta":  1.57},  # ← add yours
 }
 ```
 `x`/`y` are in metres (world coordinates, origin = bottom-left), `theta` in radians (`0` = pointing right, `π/2` = pointing up).
@@ -121,13 +122,13 @@ Runs your current PID on 5 different track geometries and saves comparison plots
 
 All key parameters live in `src/config.py`:
 
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `SIM_TIME` | 15.0 s | Simulation duration |
-| `DT` | 0.005 s | Physics timestep |
+| Parameter | Default    | Description |
+|-----------|------------|-------------|
+| `SIM_TIME` | 30.0 s      | Simulation duration |
+| `DT` | 0.005 s    | Physics timestep |
 | `MAP_SIZE_M` | (4.0, 2.0) | Track area in metres |
-| `TRACK_WIDTH_M` | 0.020 m | Line width |
-| `QTR_CHANNELS` | 25 | Number of sensor channels |
-| `MAX_WHEEL_SPEED` | 1.0 m/s | Motor speed limit |
-| `WHEEL_BASE` | 0.12 m | Distance between wheels |
-| `MU_SLIDE` | 1.14 | Sliding friction coefficient |
+| `TRACK_WIDTH_M` | 0.020 m    | Line width |
+| `QTR_CHANNELS` | 25         | Number of sensor channels |
+| `MAX_WHEEL_SPEED` | 1.0 m/s    | Motor speed limit |
+| `WHEEL_BASE` | 0.12 m     | Distance between wheels |
+| `MU_SLIDE` | 1.14       | Sliding friction coefficient |

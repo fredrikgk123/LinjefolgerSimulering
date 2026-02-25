@@ -1,5 +1,8 @@
 # Line-Following Robot Simulation
 
+![Simulation Output](assets/image1.png)
+*Live simulation view (left) showing the robot tracking a sine wave track, with real-time sensor array readings, lateral error, and wheel speed plots (right).*
+
 ## Structure
 
 ```

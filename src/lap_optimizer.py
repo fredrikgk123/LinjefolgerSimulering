@@ -44,18 +44,26 @@ RENDER_EVERY = 8
 
 # ── Parameter search space ────────────────────────────────────────────────────
 # Each entry: (min, max, initial_guess)
-# initial_guess values come from config.py (PID_KP, SC_* …) so that
-# main.py and lap_optimizer.py always start from the same parameters.
-# integral_limit and derivative_filter are fixed and shared via config.py.
+# All initial_guess values come from config.py so that main.py and
+# lap_optimizer.py always start from the same baseline parameters.
+# Edit config.py to change the starting point for the next optimizer run.
+#
+# integral_limit and derivative_filter are intentionally kept fixed (from
+# config.py) — they are stability/noise knobs that are largely track-
+# independent and are better tuned by hand after the main 8 parameters
+# have converged. Freeing them wastes CMA-ES budget on dimensions that
+# barely move lap time.
 PARAM_SPACE = {
-    "kp":              (40.0,  180.0,  PID_KP),
-    "ki":              (1.0,   8.0,    PID_KI),
-    "kd":              (8.0,   30.0,   PID_KD),
-    "pid_limit":       (12.0,  28.0,   PID_LIMIT),
-    "straight_speed":  (0.5,   1.4,    SC_STRAIGHT_SPEED),
-    "turn_speed":      (0.3,   0.9,    SC_TURN_SPEED),
-    "error_threshold": (0.003, 0.020,  SC_ERROR_THRESHOLD),
-    "smoothing":       (0.05,  0.25,   SC_SMOOTHING),
+    # ── PID ───────────────────────────────────────────────────────────────────
+    "kp":               (40.0,  200.0,  PID_KP),
+    "ki":               (0.0,   10.0,   PID_KI),
+    "kd":               (5.0,   40.0,   PID_KD),
+    "pid_limit":        (10.0,  35.0,   PID_LIMIT),
+    # ── Speed controller ──────────────────────────────────────────────────────
+    "straight_speed":   (0.5,   1.4,    SC_STRAIGHT_SPEED),
+    "turn_speed":       (0.3,   1.0,    SC_TURN_SPEED),
+    "error_threshold":  (0.002, 0.025,  SC_ERROR_THRESHOLD),
+    "smoothing":        (0.03,  0.30,   SC_SMOOTHING),
 }
 
 
@@ -101,7 +109,8 @@ def run_lap(track_filename: str, params: dict, show_viz: bool = False):
     pid = PID(
         kp=params["kp"], ki=params["ki"], kd=params["kd"],
         limit=params["pid_limit"],
-        integral_limit=PID_INTEGRAL_LIMIT, derivative_filter=PID_DERIV_FILTER   # from config.py
+        integral_limit=PID_INTEGRAL_LIMIT,   # fixed — tune by hand in config.py
+        derivative_filter=PID_DERIV_FILTER,  # fixed — tune by hand in config.py
     )
     sc = SpeedController(
         straight_speed=params["straight_speed"],
@@ -445,9 +454,12 @@ class LapOptimizer:
                 fs.append(s)
                 p = params
                 print(f"  [{self.iteration:>4}] gen={gen+1:>3} "
-                      f"Kp={p['kp']:.0f} Ki={p['ki']:.1f} Kd={p['kd']:.0f} "
-                      f"v={p['straight_speed']:.2f}/{p['turn_speed']:.2f} "
-                      f"-> {result_str}{tag}")
+                      f"Kp={p['kp']:.1f}  Ki={p['ki']:.2f}  Kd={p['kd']:.1f}  "
+                      f"lim={p['pid_limit']:.1f}  ilim={p['integral_limit']:.2f}  df={p['derivative_filter']:.3f}")
+                print(f"           "
+                      f"v_str={p['straight_speed']:.3f}  v_trn={p['turn_speed']:.3f}  "
+                      f"e_th={p['error_threshold']:.4f}  smth={p['smoothing']:.3f}"
+                      f"  ->  {result_str}{tag}")
 
             cma.tell(xs, fs)
             best_gen = min(fs)
@@ -470,9 +482,12 @@ class LapOptimizer:
             s, result_str, tag = self._evaluate(params)
             p = params
             print(f"  [{self.iteration:>4}/{n}] "
-                  f"Kp={p['kp']:.0f} Ki={p['ki']:.1f} Kd={p['kd']:.0f} "
-                  f"v={p['straight_speed']:.2f}/{p['turn_speed']:.2f} "
-                  f"-> {result_str}{tag}")
+                  f"Kp={p['kp']:.1f}  Ki={p['ki']:.2f}  Kd={p['kd']:.1f}  "
+                  f"lim={p['pid_limit']:.1f}  ilim={p['integral_limit']:.2f}  df={p['derivative_filter']:.3f}")
+            print(f"           "
+                  f"v_str={p['straight_speed']:.3f}  v_trn={p['turn_speed']:.3f}  "
+                  f"e_th={p['error_threshold']:.4f}  smth={p['smoothing']:.3f}"
+                  f"  ->  {result_str}{tag}")
 
         self._print_summary()
 
@@ -492,9 +507,12 @@ class LapOptimizer:
             s, result_str, tag = self._evaluate(params)
             p = params
             print(f"  [{self.iteration:>5}/{total}] "
-                  f"Kp={p['kp']:.0f} Ki={p['ki']:.1f} Kd={p['kd']:.0f} "
-                  f"v={p['straight_speed']:.2f}/{p['turn_speed']:.2f} "
-                  f"-> {result_str}{tag}")
+                  f"Kp={p['kp']:.1f}  Ki={p['ki']:.2f}  Kd={p['kd']:.1f}  "
+                  f"lim={p['pid_limit']:.1f}  ilim={p['integral_limit']:.2f}  df={p['derivative_filter']:.3f}")
+            print(f"           "
+                  f"v_str={p['straight_speed']:.3f}  v_trn={p['turn_speed']:.3f}  "
+                  f"e_th={p['error_threshold']:.4f}  smth={p['smoothing']:.3f}"
+                  f"  ->  {result_str}{tag}")
 
         self._print_summary()
 
@@ -512,27 +530,37 @@ class LapOptimizer:
             p = self.best["params"]
             print(f"\n  BEST LAP TIME : {self.best['lap_time']:.3f} s")
             print(f"  Peak error    : {self.best['max_error']*1000:.1f} mm")
-            print(f"\n  -- Copy into main.py -------------------------")
-            print(f"  pid = PID(kp={p['kp']:.1f}, ki={p['ki']:.2f}, kd={p['kd']:.1f},")
-            print(f"            limit={p['pid_limit']:.1f}, integral_limit=1.3, derivative_filter=0.11)")
-            print(f"  speed_controller = SpeedController(")
-            print(f"      straight_speed={p['straight_speed']:.3f},")
-            print(f"      turn_speed={p['turn_speed']:.3f},")
-            print(f"      error_threshold={p['error_threshold']:.4f},")
-            print(f"      smoothing={p['smoothing']:.3f})")
-            print("  " + "-"*46)
+            print(f"\n  ── Paste into config.py ──────────────────────────────")
+            print(f"  PID_KP               = {p['kp']:.1f}")
+            print(f"  PID_KI               = {p['ki']:.3f}")
+            print(f"  PID_KD               = {p['kd']:.1f}")
+            print(f"  PID_LIMIT            = {p['pid_limit']:.1f}")
+            print(f"  # PID_INTEGRAL_LIMIT and PID_DERIV_FILTER were fixed during")
+            print(f"  # this run — tune them by hand in config.py if needed.")
+            print(f"")
+            print(f"  SC_STRAIGHT_SPEED    = {p['straight_speed']:.4f}")
+            print(f"  SC_TURN_SPEED        = {p['turn_speed']:.4f}")
+            print(f"  SC_ERROR_THRESHOLD   = {p['error_threshold']:.5f}")
+            print(f"  SC_SMOOTHING         = {p['smoothing']:.4f}")
+            print(f"  ─────────────────────────────────────────────────────")
 
         self.save_results()
 
         top = self.get_top_n(5)
         if top:
             print(f"\n  Top {len(top)} valid laps:")
+            print(f"  {'#':<3} {'Time':>7}  {'Kp':>6} {'Ki':>5} {'Kd':>5} "
+                  f"{'lim':>5}  "
+                  f"{'v_str':>6} {'v_trn':>6} {'e_th':>7} {'smth':>5}  {'err(mm)':>7}")
+            print(f"  " + "-"*75)
             for i, r in enumerate(top, 1):
                 p = r["params"]
-                print(f"  {i}. {r['lap_time']:.3f}s  "
-                      f"Kp={p['kp']:.0f} Kd={p['kd']:.0f} "
-                      f"v={p['straight_speed']:.2f}/{p['turn_speed']:.2f}  "
-                      f"err={r['max_error']*1000:.1f}mm")
+                print(f"  {i:<3} {r['lap_time']:>7.3f}s "
+                      f"{p['kp']:>6.1f} {p['ki']:>5.2f} {p['kd']:>5.1f} "
+                      f"{p['pid_limit']:>5.1f}  "
+                      f"{p['straight_speed']:>6.3f} {p['turn_speed']:>6.3f} "
+                      f"{p['error_threshold']:>7.4f} {p['smoothing']:>5.3f}  "
+                      f"{r['max_error']*1000:>7.1f}")
 
     def get_top_n(self, n: int = 5):
         valid = [r for r in self.results if r["valid"] and r["lap_time"] is not None]

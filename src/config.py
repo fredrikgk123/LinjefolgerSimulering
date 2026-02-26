@@ -43,7 +43,7 @@ MAX_LINE_LOSS_TIME  = 1.0    # seconds — more than this = truly off track / DN
 # initial guess / centre point for the optimizer in lap_optimizer.py.
 # Change values here — both programs will pick them up automatically.
 PID_KP               = 120.0   # proportional gain
-PID_KI               = 4.0     # integral gain
+PID_KI               = 4.1     # integral gain
 PID_KD               = 18.0    # derivative gain
 PID_LIMIT            = 22.0    # output (angular velocity) clamp
 PID_INTEGRAL_LIMIT   = 1.2     # windup guard

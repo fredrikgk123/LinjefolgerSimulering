@@ -18,41 +18,31 @@ pip install numpy matplotlib pillow
 ```
 Simulering/
 ├── src/
-│   ├── main.py                    ← Entry point (visual run)
-│   ├── config.py                  ← ★ Single source of truth for ALL parameters
-│   ├── lap_optimizer.py           ← Lap-time optimizer (CMA-ES / random / grid)
-│   ├── performance_metrics.py     ← RMS / settling time calculations
-│   ├── optimize.py                ← General PID optimizer CLI
-│   ├── preview_track.py           ← Plot track with start/finish zone for inspection
-│   ├── pid_optimizer.py           ← ML optimization engine (grid / bayesian)
-│   ├── multi_track_simulator.py   ← Run simulations across multiple tracks
-│   ├── multi_track_plots.py       ← Stacked list / bar / table visualizations
+│   ├── main.py                ← Entry point (visual run)
+│   ├── config.py              ← ★ Single source of truth for ALL parameters
+│   ├── lap_optimizer.py       ← Lap-time optimizer (CMA-ES / random / grid)
+│   ├── performance_metrics.py ← RMS / settling time calculations
+│   ├── preview_track.py       ← Plot track with start/finish zone for inspection
 │   ├── control/
-│   │   └── pid_controller.py      ← PID + SpeedController state machine
+│   │   └── pid_controller.py  ← PID + SpeedController state machine
 │   ├── physics/
-│   │   ├── robot_model.py         ← Differential drive kinematics
-│   │   └── friction.py            ← Tyre friction model
+│   │   ├── robot_model.py     ← Differential drive kinematics
+│   │   └── friction.py        ← Tyre friction model
 │   ├── sensors/
-│   │   └── qtr_array.py           ← QTR-HD-25RC sensor array simulation
+│   │   └── qtr_array.py       ← QTR-HD-25RC sensor array simulation
 │   ├── track/
-│   │   ├── track_generator.py     ← Default sine-wave track (generated)
-│   │   ├── image_loader.py        ← Universal loader for custom track images
-│   │   └── multi_track.py         ← Built-in tracks for optimizer testing
+│   │   └── image_loader.py    ← Universal loader for track images
 │   ├── visualization/
-│   │   ├── plots.py               ← Live + summary plots (incl. checkpoint circles)
-│   │   └── sensor_overlay.py      ← Sensor reading overlay
+│   │   └── plots.py           ← Live + summary plots (incl. checkpoint circles)
 │   └── tests/
-│       ├── debug_sensors.py
-│       ├── test_multi_track.py
-│       ├── test_sensor.py
-│       ├── test_sensor_tracking.py
-│       └── test_setup.py
-├── assets/                        ← Track images (add your own here)
-│   ├── suzuka.png
+│       ├── debug_sensors.py   ← Sensor debug at spawn position
+│       └── test_setup.py      ← Import + simulation sanity check
+├── assets/                    ← Track images
 │   ├── bane_fase2.png
+│   ├── suzuka.png
 │   └── for_readme/
-├── docs/                          ← Detailed documentation
-├── output/                        ← Generated results (auto-created)
+├── docs/                      ← Detailed documentation
+├── output/                    ← Generated results (auto-created)
 └── README.md
 ```
 
@@ -63,14 +53,14 @@ Simulering/
 ```bash
 cd src
 
-python3 main.py                                   # default sine-wave track
 python3 main.py --track ../assets/bane_fase2.png  # Competition track
 python3 main.py --track ../assets/suzuka.png      # Suzuka circuit
 python3 main.py --track ../assets/my_track.png    # Any image you add
 ```
 
 > **Adding your own track:** drop any top-down PNG/JPG into `assets/` and pass it with `--track`.  
-> Image requirements: **dark line on a light background, top-down view**.
+> Image requirements: **dark line on a light background, top-down view**.  
+> Add a spawn position and checkpoints for it in `config.py` (see below).
 
 ---
 
@@ -105,14 +95,14 @@ from the optimizer output back here, the next run starts from that better point.
 
 ```python
 SPAWN_REGISTRY = {
-    "bane_fase2.png": {"x": 1.00, "y": 0.14, "theta":  0.00},
+    "bane_fase2.png": {"x": 2.00, "y": 0.14, "theta":  0.00},
     "suzuka.png":     {"x": 0.55, "y": 0.68, "theta": -0.40},
-    "my_track.png":   {"x": 1.50, "y": 0.50, "theta":  0.00},  # ← add yours
+    # "my_track.png": {"x": 1.00, "y": 0.50, "theta":  0.00},  # add yours here
 }
 ```
 
 `x`/`y` are metres from the bottom-left corner, `theta` in radians (`0` = right, `π/2` = up).  
-This one entry is used automatically by `main.py`, `lap_optimizer.py` and `multi_track_simulator.py`.
+This one entry is used automatically by `main.py`, `lap_optimizer.py` and `preview_track.py`.
 
 ### Lap-timer settings
 
@@ -130,7 +120,6 @@ MAX_LINE_LOSS_TIME  = 1.0    # seconds of continuous line loss before DNF
 | `SIM_TIME` | 45.0 s | Visual-run duration cap |
 | `DT` | 0.005 s | Physics timestep |
 | `MAP_SIZE_M` | (4.0, 2.0) | Track area in metres |
-| `TRACK_WIDTH_M` | 0.020 m | Line width |
 | `QTR_CHANNELS` | 25 | Sensor channels |
 | `MAX_WHEEL_SPEED` | 1.0 m/s | Motor speed limit |
 | `WHEEL_BASE` | 0.12 m | Distance between wheels |
@@ -172,35 +161,51 @@ If the robot reaches the finish line without clearing all checkpoints:
 Checkpoints are defined in `src/config.py`:
 
 ```python
-CHECKPOINT_RADIUS = 0.18   # metres — how close the robot must get to clear a checkpoint
+CHECKPOINT_RADIUS = 0.10   # metres — how close the robot must get to clear a checkpoint
 
 CHECKPOINT_REGISTRY = {
     "bane_fase2.png": [
         (2.80, 0.14),   # 25 % — far end of bottom straight
-        (3.50, 1.00),   # 50 % — right-hand hairpin apex
-        (2.00, 1.85),   # 75 % — top straight midpoint
-        (0.40, 1.00),   # 100% — left-hand hairpin apex
+        (3.80, 1.70),   # 50 % — top right corner
+        (2.00, 0.50),   # 75 % — bottom of box
+        (0.20, 1.70),   # 100% — top left corner
     ],
     "suzuka.png": [
-        (1.80, 0.68),
-        (2.80, 1.20),
-        (1.50, 1.60),
-        (0.55, 1.20),
+        (1.80, 0.68),   # after the first chicane
+        (2.80, 1.20),   # mid-sector 2
+        (1.50, 1.60),   # top of the circuit
+        (0.55, 1.20),   # return section
     ],
     # "my_track.png": [(x1,y1), (x2,y2), ...],
 }
 ```
 
 **Tip — finding good positions:**  
-Run `main.py` once and watch the robot's path on the live map. Pick four evenly-spaced points
-around the circuit (roughly 25 %, 50 %, 75 % and 100 % of the lap). The yellow circles are
-drawn at those coordinates so you can immediately see if they sit on the track.  
-Increase `CHECKPOINT_RADIUS` if a checkpoint is never cleared on a valid run.
+Run `preview_track.py` or `main.py` and watch the robot's path on the live map. Pick four
+evenly-spaced points around the circuit (roughly 25 %, 50 %, 75 % and 100 % of the lap).
+The yellow circles are drawn at those coordinates so you can immediately see if they sit on
+the track. Increase `CHECKPOINT_RADIUS` if a checkpoint is never cleared on a valid run.
 
 To **disable checkpoints** for a track, set an empty list:
 ```python
 "my_track.png": [],
 ```
+
+---
+
+## Preview Track
+
+Plots the track image with spawn point, start/finish zone, departure circle and all checkpoint
+circles overlaid — useful for verifying positions before running the optimizer.
+
+```bash
+cd src
+
+python3 preview_track.py  --track bane_fase2.png                           # bane_fase2 (default)
+python3 preview_track.py --track suzuka.png
+```
+
+The preview is also saved to `output/track_preview.png`.
 
 ---
 
@@ -232,58 +237,22 @@ optimizer run (and `main.py`) both start from the improved baseline.
 
 ---
 
-## Run General PID Optimizer
-
-Optimizes PID + SpeedController across all tracks in the registry (`sine`, `bane_fase2`, `suzuka`).
-
-```bash
-cd src
-
-python3 optimize.py --mode quick                      # ~13 min  | 27 combinations  | recommended
-python3 optimize.py --mode bayesian                   # ~75 min  | 30 random samples | refinement
-python3 optimize.py --mode bayesian --iterations 100  # ~4 hrs   | more samples
-python3 optimize.py --mode full                       # 50+ hrs  | 6400 combinations | exhaustive
-```
-
-Results saved to `output/optimization_results.json`.
-
----
-
-## Run Multi-Track Test
-
-```bash
-cd src/tests
-python3 test_multi_track.py
-```
-
-Runs the current PID on all tracks in the registry and saves comparison plots to `output/`:
-
-| Plot | Description |
-|------|-------------|
-| `multi_track_results.png` | Stacked list with EXCELLENT / GOOD / OK / POOR rating per track |
-| `multi_track_bars.png` | Side-by-side bar charts (Max error, RMS, Settling time) |
-| `multi_track_table.png` | Summary table with aggregated averages |
-
-> **Adding a track to the registry:** add a line to `ALL_TRACKS` in `src/track/multi_track.py`:
-> ```python
-> "my_track": lambda: _load_asset("my_track.png"),
-> ```
-
----
-
 ## Workflow — typical tuning loop
 
 ```
-1. Run main.py → watch the live view, adjust checkpoint positions in config.py
-                  until all circles sit on the track and turn green on a clean lap.
+1. Run preview_track.py → visually verify spawn point and checkpoint circles
+                           sit on the track. Adjust config.py if needed.
 
-2. Run lap_optimizer.py → let CMA-ES run for 30–60 generations.
+2. Run main.py → watch the live view and confirm all checkpoints turn green
+                  on a clean lap.
 
-3. Copy the "BEST" parameters from the console output into config.py
+3. Run lap_optimizer.py → let CMA-ES run for 30–60 generations.
+
+4. Copy the "BEST" parameters from the console output into config.py
    (PID_KP, PID_KI, … SC_STRAIGHT_SPEED, …).
 
-4. Run main.py again → visually verify the lap looks correct and all
+5. Run main.py again → visually verify the lap looks correct and all
    checkpoints go green in the right order.
 
-5. Repeat from step 2 to refine further.
+6. Repeat from step 3 to refine further.
 ```

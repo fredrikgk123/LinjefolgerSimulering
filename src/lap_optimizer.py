@@ -193,7 +193,7 @@ def run_lap(track_filename: str, params: dict, show_viz: bool = False):
         if not departed and dist_to_start > MIN_DEPARTURE_DIST:
             departed = True
             depart_t = t
-        if departed and dist_to_start < START_FINISH_RADIUS:
+        elif departed and dist_to_start < START_FINISH_RADIUS:
             # Only count the lap if every checkpoint was visited
             if cp_next < cp_total:
                 # Skipped at least one checkpoint — invalidate
@@ -454,12 +454,9 @@ class LapOptimizer:
                 fs.append(s)
                 p = params
                 print(f"  [{self.iteration:>4}] gen={gen+1:>3} "
-                      f"Kp={p['kp']:.1f}  Ki={p['ki']:.2f}  Kd={p['kd']:.1f}  "
-                      f"lim={p['pid_limit']:.1f}  ilim={p['integral_limit']:.2f}  df={p['derivative_filter']:.3f}")
-                print(f"           "
+                      f"Kp={p['kp']:.1f}  Ki={p['ki']:.2f}  Kd={p['kd']:.1f}  lim={p['pid_limit']:.1f}  "
                       f"v_str={p['straight_speed']:.3f}  v_trn={p['turn_speed']:.3f}  "
-                      f"e_th={p['error_threshold']:.4f}  smth={p['smoothing']:.3f}"
-                      f"  ->  {result_str}{tag}")
+                      f"e_th={p['error_threshold']:.4f}  smth={p['smoothing']:.3f}  ->  {result_str}{tag}")
 
             cma.tell(xs, fs)
             best_gen = min(fs)
@@ -482,12 +479,9 @@ class LapOptimizer:
             s, result_str, tag = self._evaluate(params)
             p = params
             print(f"  [{self.iteration:>4}/{n}] "
-                  f"Kp={p['kp']:.1f}  Ki={p['ki']:.2f}  Kd={p['kd']:.1f}  "
-                  f"lim={p['pid_limit']:.1f}  ilim={p['integral_limit']:.2f}  df={p['derivative_filter']:.3f}")
-            print(f"           "
+                  f"Kp={p['kp']:.1f}  Ki={p['ki']:.2f}  Kd={p['kd']:.1f}  lim={p['pid_limit']:.1f}  "
                   f"v_str={p['straight_speed']:.3f}  v_trn={p['turn_speed']:.3f}  "
-                  f"e_th={p['error_threshold']:.4f}  smth={p['smoothing']:.3f}"
-                  f"  ->  {result_str}{tag}")
+                  f"e_th={p['error_threshold']:.4f}  smth={p['smoothing']:.3f}  ->  {result_str}{tag}")
 
         self._print_summary()
 

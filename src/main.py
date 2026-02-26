@@ -135,7 +135,7 @@ def main():
         if not lap_started and dist_to_start > MIN_DEPARTURE_DIST:
             lap_started = True
             lap_start_t = t
-        if lap_started and lap_time is None and dist_to_start < START_FINISH_RADIUS:
+        elif lap_started and lap_time is None and dist_to_start < START_FINISH_RADIUS:
             if cp_next < cp_total:
                 print(f"  *** FALSE LAP — only {cp_next}/{cp_total} checkpoints cleared. "
                       f"Continuing... ***")

@@ -36,23 +36,23 @@ MAX_LAP_TIME        = 60.0   # seconds — DNF cutoff in optimizer
 
 # A run is invalid if the robot loses the line for more than this many seconds
 # (total sensor weight stays below LINE_THRESH continuously)
-MAX_LINE_LOSS_TIME  = 1.0    # seconds — more than this = truly off track / DNF
+MAX_LINE_LOSS_TIME  = 0.3    # seconds — more than this = truly off track / DNF
 
 # ---- PID + SPEED CONTROLLER DEFAULTS ----
 # These are the parameters used by main.py for the visual run AND as the
 # initial guess / centre point for the optimizer in lap_optimizer.py.
 # Change values here — both programs will pick them up automatically.
-PID_KP               = 120.0   # proportional gain
-PID_KI               = 4.1     # integral gain
-PID_KD               = 18.0    # derivative gain
-PID_LIMIT            = 22.0    # output (angular velocity) clamp
+PID_KP               = 120.8   # proportional gain
+PID_KI               = 3.94     # integral gain
+PID_KD               = 17.1   # derivative gain
+PID_LIMIT            = 21.6    # output (angular velocity) clamp
 PID_INTEGRAL_LIMIT   = 1.2     # windup guard
 PID_DERIV_FILTER     = 0.10    # low-pass coefficient on derivative term
 
-SC_STRAIGHT_SPEED    = 0.91    # m/s on straights
-SC_TURN_SPEED        = 0.70    # m/s in corners
-SC_ERROR_THRESHOLD   = 0.007   # lateral error that triggers speed reduction (m)
-SC_SMOOTHING         = 0.12    # first-order speed blend coefficient
+SC_STRAIGHT_SPEED    = 0.753    # m/s on straights
+SC_TURN_SPEED        = 0.499  # m/s in corners
+SC_ERROR_THRESHOLD   = 0.0250   # lateral error that triggers speed reduction (m)
+SC_SMOOTHING         = 0.093    # first-order speed blend coefficient
 
 # ---- SENSOR NOISE SEED ----
 # Fixed seed makes every simulation deterministic.

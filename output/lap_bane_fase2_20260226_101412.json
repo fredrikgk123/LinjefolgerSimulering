@@ -1,0 +1,1382 @@
+{
+  "timestamp": "2026-02-26T10:14:12.500883",
+  "track": "bane_fase2.png",
+  "evaluations": 80,
+  "best": {
+    "params": {
+      "kp": 120.39278662519655,
+      "ki": 3.9234857756848514,
+      "kd": 17.954828488454957,
+      "pid_limit": 21.865625541080647,
+      "straight_speed": 0.9887272906569576,
+      "turn_speed": 0.9105461737555068,
+      "error_threshold": 0.002,
+      "smoothing": 0.3
+    },
+    "score": 21.11000000000001,
+    "lap_time": 21.11000000000001,
+    "max_error": 0.047376988128219145
+  },
+  "all_results": [
+    {
+      "iteration": 1,
+      "score": 600.0,
+      "lap_time": null,
+      "valid": false,
+      "max_error": 0.037477904937645426,
+      "params": {
+        "kp": 120.2846612781468,
+        "ki": 4.120460027403921,
+        "kd": 18.328202040135956,
+        "pid_limit": 21.909228193348405,
+        "straight_speed": 1.1128600948053438,
+        "turn_speed": 1.0,
+        "error_threshold": 0.002,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 2,
+      "score": 600.0,
+      "lap_time": null,
+      "valid": false,
+      "max_error": 0.04695654162550087,
+      "params": {
+        "kp": 120.13491850605749,
+        "ki": 4.510052905937691,
+        "kd": 17.685171462656267,
+        "pid_limit": 21.76589471152548,
+        "straight_speed": 0.8217242163189186,
+        "turn_speed": 0.7663597321385222,
+        "error_threshold": 0.025,
+        "smoothing": 0.03
+      }
+    },
+    {
+      "iteration": 3,
+      "score": 39.59500000000201,
+      "lap_time": 39.59500000000201,
+      "valid": true,
+      "max_error": 0.047331649164372006,
+      "params": {
+        "kp": 119.82264943094994,
+        "ki": 3.8270384365023093,
+        "kd": 17.83848385999866,
+        "pid_limit": 21.85985493339639,
+        "straight_speed": 0.9035847291803781,
+        "turn_speed": 0.3,
+        "error_threshold": 0.004728061733895919,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 4,
+      "score": 600.0,
+      "lap_time": null,
+      "valid": false,
+      "max_error": 0.04675733018088597,
+      "params": {
+        "kp": 120.07567040038688,
+        "ki": 3.9876961820663825,
+        "kd": 17.80406167598723,
+        "pid_limit": 21.708751300916813,
+        "straight_speed": 0.907753444628431,
+        "turn_speed": 0.3,
+        "error_threshold": 0.025,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 5,
+      "score": 33.93499999999909,
+      "lap_time": 33.93499999999909,
+      "valid": true,
+      "max_error": 0.04726773957322161,
+      "params": {
+        "kp": 120.15111294457124,
+        "ki": 3.8768193808135525,
+        "kd": 17.893694898161257,
+        "pid_limit": 21.860563891140078,
+        "straight_speed": 1.073913997678906,
+        "turn_speed": 0.8774298403289613,
+        "error_threshold": 0.0024595341846006206,
+        "smoothing": 0.03
+      }
+    },
+    {
+      "iteration": 6,
+      "score": 600.0,
+      "lap_time": null,
+      "valid": false,
+      "max_error": 0.047165683413771746,
+      "params": {
+        "kp": 119.65993559904504,
+        "ki": 4.352212175164805,
+        "kd": 17.94687575018147,
+        "pid_limit": 22.219099874570517,
+        "straight_speed": 0.9028901931603751,
+        "turn_speed": 0.9341307143013163,
+        "error_threshold": 0.025,
+        "smoothing": 0.03
+      }
+    },
+    {
+      "iteration": 7,
+      "score": 600.0,
+      "lap_time": null,
+      "valid": false,
+      "max_error": 0.04748727898286996,
+      "params": {
+        "kp": 120.04857304677824,
+        "ki": 4.030836074801606,
+        "kd": 18.36696220059909,
+        "pid_limit": 21.803582258593764,
+        "straight_speed": 1.3027840979265144,
+        "turn_speed": 0.456016669409528,
+        "error_threshold": 0.002,
+        "smoothing": 0.03
+      }
+    },
+    {
+      "iteration": 8,
+      "score": 23.449999999999545,
+      "lap_time": 23.449999999999545,
+      "valid": true,
+      "max_error": 0.04744073822544492,
+      "params": {
+        "kp": 120.27307417311302,
+        "ki": 3.8204093227950904,
+        "kd": 17.984725304950672,
+        "pid_limit": 21.735116465660344,
+        "straight_speed": 1.0077105536886515,
+        "turn_speed": 0.4305902972637734,
+        "error_threshold": 0.025,
+        "smoothing": 0.2119938723729839
+      }
+    },
+    {
+      "iteration": 9,
+      "score": 23.094999999999608,
+      "lap_time": 23.094999999999608,
+      "valid": true,
+      "max_error": 0.04722245070816206,
+      "params": {
+        "kp": 119.70729490879043,
+        "ki": 4.009924643288275,
+        "kd": 17.80661554510084,
+        "pid_limit": 22.128092101350262,
+        "straight_speed": 0.9994763178573043,
+        "turn_speed": 0.7597281318899113,
+        "error_threshold": 0.002,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 10,
+      "score": 600.0,
+      "lap_time": null,
+      "valid": false,
+      "max_error": 0.047336758922382476,
+      "params": {
+        "kp": 119.81672270886419,
+        "ki": 4.197341012429385,
+        "kd": 17.72452486717566,
+        "pid_limit": 22.110080761161104,
+        "straight_speed": 0.9116547466032776,
+        "turn_speed": 0.4386691558055578,
+        "error_threshold": 0.002,
+        "smoothing": 0.03
+      }
+    },
+    {
+      "iteration": 11,
+      "score": 22.034999999999823,
+      "lap_time": 22.034999999999823,
+      "valid": true,
+      "max_error": 0.04746476105701043,
+      "params": {
+        "kp": 120.05377316149314,
+        "ki": 4.43359304406383,
+        "kd": 17.8590076407916,
+        "pid_limit": 21.83998379253129,
+        "straight_speed": 1.094005610080504,
+        "turn_speed": 0.8336216491303122,
+        "error_threshold": 0.002,
+        "smoothing": 0.1600383217848557
+      }
+    },
+    {
+      "iteration": 12,
+      "score": 25.15999999999919,
+      "lap_time": 25.15999999999919,
+      "valid": true,
+      "max_error": 0.0473422187023117,
+      "params": {
+        "kp": 120.03274804009924,
+        "ki": 4.13313320538762,
+        "kd": 18.158151703698348,
+        "pid_limit": 22.219230178542944,
+        "straight_speed": 0.8985462265159071,
+        "turn_speed": 0.6812513426295576,
+        "error_threshold": 0.002,
+        "smoothing": 0.25459353370251236
+      }
+    },
+    {
+      "iteration": 13,
+      "score": 35.05499999999967,
+      "lap_time": 35.05499999999967,
+      "valid": true,
+      "max_error": 0.047547928320471465,
+      "params": {
+        "kp": 120.25332441653354,
+        "ki": 4.173600588982415,
+        "kd": 18.28632256273392,
+        "pid_limit": 22.140007769613593,
+        "straight_speed": 1.078821031353471,
+        "turn_speed": 0.41630970147592533,
+        "error_threshold": 0.025,
+        "smoothing": 0.24166352030671517
+      }
+    },
+    {
+      "iteration": 14,
+      "score": 29.789999999998237,
+      "lap_time": 29.789999999998237,
+      "valid": true,
+      "max_error": 0.0474752031394532,
+      "params": {
+        "kp": 119.7617614852131,
+        "ki": 4.055070495701709,
+        "kd": 18.21929455481496,
+        "pid_limit": 21.921312264932197,
+        "straight_speed": 0.5462649966848636,
+        "turn_speed": 0.8620614531872688,
+        "error_threshold": 0.02100937037993599,
+        "smoothing": 0.03
+      }
+    },
+    {
+      "iteration": 15,
+      "score": 600.0,
+      "lap_time": null,
+      "valid": false,
+      "max_error": 0.04718932941634322,
+      "params": {
+        "kp": 119.51246807604375,
+        "ki": 4.220752569723426,
+        "kd": 17.661096912551173,
+        "pid_limit": 22.275349157141015,
+        "straight_speed": 0.5096207292620432,
+        "turn_speed": 1.0,
+        "error_threshold": 0.002,
+        "smoothing": 0.03
+      }
+    },
+    {
+      "iteration": 16,
+      "score": 600.0,
+      "lap_time": null,
+      "valid": false,
+      "max_error": 0.04603451412174588,
+      "params": {
+        "kp": 119.90780779243882,
+        "ki": 4.018370308057572,
+        "kd": 18.014913488430114,
+        "pid_limit": 21.534798841532847,
+        "straight_speed": 1.3255383880016185,
+        "turn_speed": 0.3,
+        "error_threshold": 0.025,
+        "smoothing": 0.053118612164218426
+      }
+    },
+    {
+      "iteration": 17,
+      "score": 600.0,
+      "lap_time": null,
+      "valid": false,
+      "max_error": 0.04755553385386956,
+      "params": {
+        "kp": 120.2825092249335,
+        "ki": 3.8561799635464333,
+        "kd": 17.594323979215698,
+        "pid_limit": 22.007509152974812,
+        "straight_speed": 0.9226806131525369,
+        "turn_speed": 1.0,
+        "error_threshold": 0.024632991314300565,
+        "smoothing": 0.2093807753183319
+      }
+    },
+    {
+      "iteration": 18,
+      "score": 600.0,
+      "lap_time": null,
+      "valid": false,
+      "max_error": 0.04167438935956515,
+      "params": {
+        "kp": 120.31561626895888,
+        "ki": 4.172269871912887,
+        "kd": 17.99547149806771,
+        "pid_limit": 22.173925270845768,
+        "straight_speed": 0.8417774880099084,
+        "turn_speed": 0.943302944241672,
+        "error_threshold": 0.011243043101908809,
+        "smoothing": 0.03
+      }
+    },
+    {
+      "iteration": 19,
+      "score": 22.774999999999665,
+      "lap_time": 22.774999999999665,
+      "valid": true,
+      "max_error": 0.04755410219775581,
+      "params": {
+        "kp": 120.41931765192975,
+        "ki": 4.033560027244324,
+        "kd": 17.5913371526145,
+        "pid_limit": 21.779283161513376,
+        "straight_speed": 0.7640873947031649,
+        "turn_speed": 0.7648179679391667,
+        "error_threshold": 0.025,
+        "smoothing": 0.2722606250105936
+      }
+    },
+    {
+      "iteration": 20,
+      "score": 22.504999999999722,
+      "lap_time": 22.504999999999722,
+      "valid": true,
+      "max_error": 0.04742886346778442,
+      "params": {
+        "kp": 120.33860013415209,
+        "ki": 4.364088859026207,
+        "kd": 17.367524566302972,
+        "pid_limit": 22.14298802402416,
+        "straight_speed": 0.8627086095418892,
+        "turn_speed": 0.8335684048643656,
+        "error_threshold": 0.002,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 21,
+      "score": 24.574999999999314,
+      "lap_time": 24.574999999999314,
+      "valid": true,
+      "max_error": 0.04751775515181298,
+      "params": {
+        "kp": 120.0892431107532,
+        "ki": 4.259381843341019,
+        "kd": 18.179650851012145,
+        "pid_limit": 21.624973769123496,
+        "straight_speed": 1.223677629538618,
+        "turn_speed": 0.6756193444520309,
+        "error_threshold": 0.002,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 22,
+      "score": 26.34499999999895,
+      "lap_time": 26.34499999999895,
+      "valid": true,
+      "max_error": 0.04763458276441432,
+      "params": {
+        "kp": 119.67189837539928,
+        "ki": 4.336400495854141,
+        "kd": 17.91165484162202,
+        "pid_limit": 21.926201668543,
+        "straight_speed": 0.5020043322439744,
+        "turn_speed": 0.9176528020411439,
+        "error_threshold": 0.002,
+        "smoothing": 0.11700769245811732
+      }
+    },
+    {
+      "iteration": 23,
+      "score": 23.574999999999505,
+      "lap_time": 23.574999999999505,
+      "valid": true,
+      "max_error": 0.047565024016418336,
+      "params": {
+        "kp": 119.79353807709019,
+        "ki": 4.302274158704351,
+        "kd": 18.021319569620115,
+        "pid_limit": 21.949043407073734,
+        "straight_speed": 0.7743836161444541,
+        "turn_speed": 0.7880433519818051,
+        "error_threshold": 0.002,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 24,
+      "score": 600.0,
+      "lap_time": null,
+      "valid": false,
+      "max_error": 0.04672218674764535,
+      "params": {
+        "kp": 119.73498068168823,
+        "ki": 3.9775286551645777,
+        "kd": 18.367322145311224,
+        "pid_limit": 21.989459388708635,
+        "straight_speed": 1.043516761720797,
+        "turn_speed": 0.9318661635215348,
+        "error_threshold": 0.025,
+        "smoothing": 0.03
+      }
+    },
+    {
+      "iteration": 25,
+      "score": 600.0,
+      "lap_time": null,
+      "valid": false,
+      "max_error": 0.045523153977702804,
+      "params": {
+        "kp": 120.46784904736526,
+        "ki": 4.123306185806795,
+        "kd": 18.003030127078805,
+        "pid_limit": 21.960945585936926,
+        "straight_speed": 1.3135395091667241,
+        "turn_speed": 0.9302394867907251,
+        "error_threshold": 0.002,
+        "smoothing": 0.03
+      }
+    },
+    {
+      "iteration": 26,
+      "score": 600.0,
+      "lap_time": null,
+      "valid": true,
+      "max_error": 0.047340996301739484,
+      "params": {
+        "kp": 119.94199525938375,
+        "ki": 3.842727068330462,
+        "kd": 18.139065710891874,
+        "pid_limit": 21.80078474080685,
+        "straight_speed": 0.9664885039772732,
+        "turn_speed": 0.9768030832635664,
+        "error_threshold": 0.025,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 27,
+      "score": 600.0,
+      "lap_time": null,
+      "valid": false,
+      "max_error": 0.036242130141577206,
+      "params": {
+        "kp": 119.82212167550483,
+        "ki": 4.237997293912202,
+        "kd": 17.773327901587756,
+        "pid_limit": 22.055130315126924,
+        "straight_speed": 0.7052456236433575,
+        "turn_speed": 0.9841778816460673,
+        "error_threshold": 0.002,
+        "smoothing": 0.2155552244430553
+      }
+    },
+    {
+      "iteration": 28,
+      "score": 600.0,
+      "lap_time": null,
+      "valid": false,
+      "max_error": 0.047231350783792446,
+      "params": {
+        "kp": 120.07950934385227,
+        "ki": 4.107730700256154,
+        "kd": 17.960557504419363,
+        "pid_limit": 22.22796447333372,
+        "straight_speed": 1.2179683063416242,
+        "turn_speed": 0.8770037388016967,
+        "error_threshold": 0.002,
+        "smoothing": 0.14969437648228529
+      }
+    },
+    {
+      "iteration": 29,
+      "score": 22.1399999999998,
+      "lap_time": 22.1399999999998,
+      "valid": true,
+      "max_error": 0.047386517683172855,
+      "params": {
+        "kp": 120.22735225732093,
+        "ki": 3.9353029557744232,
+        "kd": 18.33270331605619,
+        "pid_limit": 22.10224292833917,
+        "straight_speed": 1.2450125561198604,
+        "turn_speed": 0.8238350151145225,
+        "error_threshold": 0.002,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 30,
+      "score": 32.58999999999841,
+      "lap_time": 32.58999999999841,
+      "valid": true,
+      "max_error": 0.04746900258713805,
+      "params": {
+        "kp": 119.68945850851057,
+        "ki": 4.005115946669748,
+        "kd": 17.904369998835442,
+        "pid_limit": 21.64843570917972,
+        "straight_speed": 1.1268616251833987,
+        "turn_speed": 0.9969112383562022,
+        "error_threshold": 0.002,
+        "smoothing": 0.1282159058268977
+      }
+    },
+    {
+      "iteration": 31,
+      "score": 23.264999999999578,
+      "lap_time": 23.264999999999578,
+      "valid": true,
+      "max_error": 0.04737447595329108,
+      "params": {
+        "kp": 119.95789504484735,
+        "ki": 4.202807017183365,
+        "kd": 18.13122421295287,
+        "pid_limit": 21.887443196622517,
+        "straight_speed": 1.1927520616027674,
+        "turn_speed": 0.7415452319938239,
+        "error_threshold": 0.002,
+        "smoothing": 0.26833604205483547
+      }
+    },
+    {
+      "iteration": 32,
+      "score": 600.0,
+      "lap_time": null,
+      "valid": true,
+      "max_error": 0.047609280894982745,
+      "params": {
+        "kp": 119.72070693886802,
+        "ki": 4.077563074978033,
+        "kd": 17.90774926522058,
+        "pid_limit": 21.81675192959496,
+        "straight_speed": 1.4,
+        "turn_speed": 1.0,
+        "error_threshold": 0.002,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 33,
+      "score": 600.0,
+      "lap_time": null,
+      "valid": false,
+      "max_error": 0.04754746698679472,
+      "params": {
+        "kp": 119.87545256296536,
+        "ki": 4.259020069592871,
+        "kd": 17.899601932361655,
+        "pid_limit": 21.924262446681464,
+        "straight_speed": 1.1854974307123884,
+        "turn_speed": 0.7037782129144478,
+        "error_threshold": 0.014508682480770446,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 34,
+      "score": 600.0,
+      "lap_time": null,
+      "valid": true,
+      "max_error": 0.04754406991344384,
+      "params": {
+        "kp": 120.24305723360833,
+        "ki": 3.960091218357337,
+        "kd": 17.849797072376816,
+        "pid_limit": 22.191677712410456,
+        "straight_speed": 1.1067302958092564,
+        "turn_speed": 0.9048139314996758,
+        "error_threshold": 0.025,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 35,
+      "score": 28.92499999999844,
+      "lap_time": 28.92499999999844,
+      "valid": true,
+      "max_error": 0.04720779119208237,
+      "params": {
+        "kp": 119.88575775685467,
+        "ki": 4.478169905653509,
+        "kd": 17.807295468466652,
+        "pid_limit": 22.1541821208193,
+        "straight_speed": 1.0533993581264363,
+        "turn_speed": 0.5275060353246404,
+        "error_threshold": 0.002,
+        "smoothing": 0.2668594168775932
+      }
+    },
+    {
+      "iteration": 36,
+      "score": 600.0,
+      "lap_time": null,
+      "valid": false,
+      "max_error": 0.03654866814626817,
+      "params": {
+        "kp": 120.00320126202173,
+        "ki": 4.233014317475146,
+        "kd": 17.921927983318565,
+        "pid_limit": 21.900329159236815,
+        "straight_speed": 0.7415842033476079,
+        "turn_speed": 1.0,
+        "error_threshold": 0.002,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 37,
+      "score": 23.704999999999487,
+      "lap_time": 23.704999999999487,
+      "valid": true,
+      "max_error": 0.04745366272315546,
+      "params": {
+        "kp": 120.31724225614421,
+        "ki": 3.8377377597205964,
+        "kd": 17.58536972154279,
+        "pid_limit": 21.910974357237112,
+        "straight_speed": 1.037652051455979,
+        "turn_speed": 0.7231333194996156,
+        "error_threshold": 0.002,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 38,
+      "score": 600.0,
+      "lap_time": null,
+      "valid": false,
+      "max_error": 0.037458068371392816,
+      "params": {
+        "kp": 120.31578824304879,
+        "ki": 3.8272217178543104,
+        "kd": 18.158801712819272,
+        "pid_limit": 21.802149914356296,
+        "straight_speed": 1.0806197065587462,
+        "turn_speed": 1.0,
+        "error_threshold": 0.002,
+        "smoothing": 0.23127215551453978
+      }
+    },
+    {
+      "iteration": 39,
+      "score": 600.0,
+      "lap_time": null,
+      "valid": false,
+      "max_error": 0.04723001978307786,
+      "params": {
+        "kp": 120.20198769553421,
+        "ki": 4.552874858060956,
+        "kd": 17.531164093307016,
+        "pid_limit": 22.00561553410618,
+        "straight_speed": 0.8101060801879518,
+        "turn_speed": 0.948040128923947,
+        "error_threshold": 0.002,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 40,
+      "score": 21.11000000000001,
+      "lap_time": 21.11000000000001,
+      "valid": true,
+      "max_error": 0.047376988128219145,
+      "params": {
+        "kp": 120.39278662519655,
+        "ki": 3.9234857756848514,
+        "kd": 17.954828488454957,
+        "pid_limit": 21.865625541080647,
+        "straight_speed": 0.9887272906569576,
+        "turn_speed": 0.9105461737555068,
+        "error_threshold": 0.002,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 41,
+      "score": 21.474999999999934,
+      "lap_time": 21.474999999999934,
+      "valid": true,
+      "max_error": 0.047363159841017646,
+      "params": {
+        "kp": 120.21479466915163,
+        "ki": 3.9114514115374086,
+        "kd": 17.983241602197328,
+        "pid_limit": 21.97051874319132,
+        "straight_speed": 0.9283817999682363,
+        "turn_speed": 0.8882736024471026,
+        "error_threshold": 0.002,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 42,
+      "score": 600.0,
+      "lap_time": null,
+      "valid": false,
+      "max_error": 0.04736917599523085,
+      "params": {
+        "kp": 119.73246450630175,
+        "ki": 3.9982430605452404,
+        "kd": 17.792905448834386,
+        "pid_limit": 21.795268101878868,
+        "straight_speed": 1.1832646471765513,
+        "turn_speed": 0.6753942881739471,
+        "error_threshold": 0.025,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 43,
+      "score": 600.0,
+      "lap_time": null,
+      "valid": true,
+      "max_error": 0.04761499849560571,
+      "params": {
+        "kp": 120.19027559879672,
+        "ki": 4.0204021378050205,
+        "kd": 17.98485350110639,
+        "pid_limit": 22.04850898033537,
+        "straight_speed": 1.2916675664821098,
+        "turn_speed": 0.7538609314785913,
+        "error_threshold": 0.025,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 44,
+      "score": 600.0,
+      "lap_time": null,
+      "valid": false,
+      "max_error": 0.03474586142293553,
+      "params": {
+        "kp": 120.11210234783958,
+        "ki": 4.452886767605948,
+        "kd": 18.033538735569884,
+        "pid_limit": 21.875221893681413,
+        "straight_speed": 1.010115381222332,
+        "turn_speed": 0.9633022462597691,
+        "error_threshold": 0.002,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 45,
+      "score": 22.25499999999977,
+      "lap_time": 22.25499999999977,
+      "valid": true,
+      "max_error": 0.0475912120408146,
+      "params": {
+        "kp": 120.1114576489503,
+        "ki": 4.342121521518039,
+        "kd": 17.792830423587354,
+        "pid_limit": 22.148340129063858,
+        "straight_speed": 0.8193340599060874,
+        "turn_speed": 0.673258349652846,
+        "error_threshold": 0.025,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 46,
+      "score": 21.61999999999991,
+      "lap_time": 21.61999999999991,
+      "valid": true,
+      "max_error": 0.04722473190085242,
+      "params": {
+        "kp": 120.26135435651886,
+        "ki": 3.6300734185392662,
+        "kd": 17.837517732134774,
+        "pid_limit": 22.083597266428423,
+        "straight_speed": 0.9148222873187816,
+        "turn_speed": 0.7782314445226669,
+        "error_threshold": 0.025,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 47,
+      "score": 22.449999999999743,
+      "lap_time": 22.449999999999743,
+      "valid": true,
+      "max_error": 0.04750304822041524,
+      "params": {
+        "kp": 120.03075809280328,
+        "ki": 4.130719398341903,
+        "kd": 17.801362013206273,
+        "pid_limit": 21.495865017447088,
+        "straight_speed": 0.9602633869736426,
+        "turn_speed": 0.37730523792074755,
+        "error_threshold": 0.025,
+        "smoothing": 0.2849255919913421
+      }
+    },
+    {
+      "iteration": 48,
+      "score": 25.144999999999182,
+      "lap_time": 25.144999999999182,
+      "valid": true,
+      "max_error": 0.04741130676856792,
+      "params": {
+        "kp": 120.34476671096876,
+        "ki": 4.512200304323464,
+        "kd": 17.99904962029121,
+        "pid_limit": 21.611555471630208,
+        "straight_speed": 0.6705190263202481,
+        "turn_speed": 0.7983781787640866,
+        "error_threshold": 0.025,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 49,
+      "score": 22.814999999999667,
+      "lap_time": 22.814999999999667,
+      "valid": true,
+      "max_error": 0.04755505155448319,
+      "params": {
+        "kp": 120.52827307084014,
+        "ki": 4.088885813745335,
+        "kd": 18.086340026543837,
+        "pid_limit": 22.063866688243092,
+        "straight_speed": 1.0328620405206972,
+        "turn_speed": 0.7698733436715851,
+        "error_threshold": 0.002,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 50,
+      "score": 21.58499999999991,
+      "lap_time": 21.58499999999991,
+      "valid": true,
+      "max_error": 0.04763852124758448,
+      "params": {
+        "kp": 120.07126360888634,
+        "ki": 3.7229503285733605,
+        "kd": 17.844898042081784,
+        "pid_limit": 22.003933936574377,
+        "straight_speed": 0.7069094555458324,
+        "turn_speed": 0.9212960734891443,
+        "error_threshold": 0.002,
+        "smoothing": 0.28791978228465626
+      }
+    },
+    {
+      "iteration": 51,
+      "score": 23.594999999999512,
+      "lap_time": 23.594999999999512,
+      "valid": true,
+      "max_error": 0.047474166269224655,
+      "params": {
+        "kp": 120.22088816600983,
+        "ki": 4.272969570602772,
+        "kd": 17.996118270914298,
+        "pid_limit": 21.741256995370684,
+        "straight_speed": 1.0651505314153538,
+        "turn_speed": 0.7275327048114508,
+        "error_threshold": 0.002,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 52,
+      "score": 600.0,
+      "lap_time": null,
+      "valid": false,
+      "max_error": 0.04166398453565099,
+      "params": {
+        "kp": 120.67191155326714,
+        "ki": 3.9927746255981957,
+        "kd": 17.816209620992204,
+        "pid_limit": 21.897734265179004,
+        "straight_speed": 1.0760129574541537,
+        "turn_speed": 1.0,
+        "error_threshold": 0.025,
+        "smoothing": 0.23579168736423578
+      }
+    },
+    {
+      "iteration": 53,
+      "score": 22.139999999999798,
+      "lap_time": 22.139999999999798,
+      "valid": true,
+      "max_error": 0.04747993554154872,
+      "params": {
+        "kp": 120.31505427815506,
+        "ki": 4.121651318019625,
+        "kd": 17.753750806517683,
+        "pid_limit": 21.657700010643904,
+        "straight_speed": 0.8295117767937001,
+        "turn_speed": 0.7492158285049274,
+        "error_threshold": 0.025,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 54,
+      "score": 600.0,
+      "lap_time": null,
+      "valid": false,
+      "max_error": 0.037042433183017934,
+      "params": {
+        "kp": 119.80269450166685,
+        "ki": 4.017529341599137,
+        "kd": 18.09609979512169,
+        "pid_limit": 22.353730261636958,
+        "straight_speed": 0.9862788054439796,
+        "turn_speed": 0.993960076127449,
+        "error_threshold": 0.006146777989973123,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 55,
+      "score": 600.0,
+      "lap_time": null,
+      "valid": false,
+      "max_error": 0.04675402113386621,
+      "params": {
+        "kp": 120.36895693209021,
+        "ki": 4.161964843439388,
+        "kd": 17.819226837456306,
+        "pid_limit": 21.739050124191525,
+        "straight_speed": 1.0762363165011712,
+        "turn_speed": 1.0,
+        "error_threshold": 0.015377008679284446,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 56,
+      "score": 22.479999999999723,
+      "lap_time": 22.479999999999723,
+      "valid": true,
+      "max_error": 0.047442394978840174,
+      "params": {
+        "kp": 120.26663437704143,
+        "ki": 4.256144769806344,
+        "kd": 17.42849089395894,
+        "pid_limit": 22.02377775396484,
+        "straight_speed": 0.7786729564050954,
+        "turn_speed": 0.848584946692066,
+        "error_threshold": 0.025,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 57,
+      "score": 600.0,
+      "lap_time": null,
+      "valid": false,
+      "max_error": 0.037540549105543435,
+      "params": {
+        "kp": 120.52158724625482,
+        "ki": 3.5881369485269667,
+        "kd": 17.60628225934715,
+        "pid_limit": 21.625003570952384,
+        "straight_speed": 0.9838492558753493,
+        "turn_speed": 1.0,
+        "error_threshold": 0.002,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 58,
+      "score": 600.0,
+      "lap_time": null,
+      "valid": true,
+      "max_error": 0.0474215307496352,
+      "params": {
+        "kp": 120.66341564349274,
+        "ki": 3.799200814590621,
+        "kd": 18.15494737743376,
+        "pid_limit": 21.98466943564492,
+        "straight_speed": 1.1889555924323632,
+        "turn_speed": 0.9167309774671092,
+        "error_threshold": 0.01842933074995909,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 59,
+      "score": 600.0,
+      "lap_time": null,
+      "valid": false,
+      "max_error": 0.04754488816633804,
+      "params": {
+        "kp": 120.50491974324822,
+        "ki": 3.8184834550640447,
+        "kd": 17.854260014428075,
+        "pid_limit": 21.9654981076981,
+        "straight_speed": 0.583153284759413,
+        "turn_speed": 1.0,
+        "error_threshold": 0.002,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 60,
+      "score": 25.19499999999919,
+      "lap_time": 25.19499999999919,
+      "valid": true,
+      "max_error": 0.04759382106495415,
+      "params": {
+        "kp": 120.11622946553878,
+        "ki": 3.626612660581626,
+        "kd": 17.828216870154698,
+        "pid_limit": 22.12544599430435,
+        "straight_speed": 1.0819141802517442,
+        "turn_speed": 0.6561347087909774,
+        "error_threshold": 0.002,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 61,
+      "score": 600.0,
+      "lap_time": null,
+      "valid": true,
+      "max_error": 0.04746288821923923,
+      "params": {
+        "kp": 120.59465111583343,
+        "ki": 3.988047511251029,
+        "kd": 17.783076525337385,
+        "pid_limit": 21.629650984631695,
+        "straight_speed": 0.991827791461957,
+        "turn_speed": 0.8073070901274076,
+        "error_threshold": 0.025,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 62,
+      "score": 600.0,
+      "lap_time": null,
+      "valid": false,
+      "max_error": 0.04733549861025242,
+      "params": {
+        "kp": 120.09376185054488,
+        "ki": 3.581535828162924,
+        "kd": 18.260929694707496,
+        "pid_limit": 21.86104111803833,
+        "straight_speed": 0.9599909111664753,
+        "turn_speed": 0.9471707406076507,
+        "error_threshold": 0.002,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 63,
+      "score": 24.979999999999233,
+      "lap_time": 24.979999999999233,
+      "valid": true,
+      "max_error": 0.04738414098973563,
+      "params": {
+        "kp": 120.22509418955569,
+        "ki": 3.751417403326025,
+        "kd": 18.14276649432354,
+        "pid_limit": 21.536589532729135,
+        "straight_speed": 1.0364952865568247,
+        "turn_speed": 0.6619708808317656,
+        "error_threshold": 0.002,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 64,
+      "score": 600.0,
+      "lap_time": null,
+      "valid": false,
+      "max_error": 0.04685598135670248,
+      "params": {
+        "kp": 120.3800692315271,
+        "ki": 3.590061251874655,
+        "kd": 17.962365828979966,
+        "pid_limit": 21.91101471866753,
+        "straight_speed": 0.762997568989731,
+        "turn_speed": 1.0,
+        "error_threshold": 0.002,
+        "smoothing": 0.03
+      }
+    },
+    {
+      "iteration": 65,
+      "score": 28.424999999998516,
+      "lap_time": 28.424999999998516,
+      "valid": true,
+      "max_error": 0.04745038678478132,
+      "params": {
+        "kp": 120.26158346422692,
+        "ki": 3.971118192732853,
+        "kd": 18.005087260265835,
+        "pid_limit": 21.92039720197485,
+        "straight_speed": 0.5865622343305424,
+        "turn_speed": 0.7507379782597694,
+        "error_threshold": 0.025,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 66,
+      "score": 24.714999999999282,
+      "lap_time": 24.714999999999282,
+      "valid": true,
+      "max_error": 0.047252600637814154,
+      "params": {
+        "kp": 120.31223484037898,
+        "ki": 4.018814794648611,
+        "kd": 17.744672759668596,
+        "pid_limit": 21.974591945860162,
+        "straight_speed": 0.9038510839922576,
+        "turn_speed": 0.7103048480822908,
+        "error_threshold": 0.002,
+        "smoothing": 0.1599070865100889
+      }
+    },
+    {
+      "iteration": 67,
+      "score": 600.0,
+      "lap_time": null,
+      "valid": false,
+      "max_error": 0.04046008106478174,
+      "params": {
+        "kp": 120.19358437440518,
+        "ki": 3.9262886197127926,
+        "kd": 17.86806429818292,
+        "pid_limit": 22.183786486941276,
+        "straight_speed": 1.0188167485802728,
+        "turn_speed": 1.0,
+        "error_threshold": 0.025,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 68,
+      "score": 21.87999999999985,
+      "lap_time": 21.87999999999985,
+      "valid": true,
+      "max_error": 0.04754519069739905,
+      "params": {
+        "kp": 120.08261462306751,
+        "ki": 3.9079394691927596,
+        "kd": 17.451208030161155,
+        "pid_limit": 22.104101869465367,
+        "straight_speed": 0.7794304981028343,
+        "turn_speed": 0.8820885488818693,
+        "error_threshold": 0.002,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 69,
+      "score": 600.0,
+      "lap_time": null,
+      "valid": false,
+      "max_error": 0.047279498772093836,
+      "params": {
+        "kp": 120.1311177619701,
+        "ki": 4.152133980852422,
+        "kd": 17.987296962386445,
+        "pid_limit": 21.548366212790498,
+        "straight_speed": 0.9218284415182,
+        "turn_speed": 0.8634098911864438,
+        "error_threshold": 0.002,
+        "smoothing": 0.03
+      }
+    },
+    {
+      "iteration": 70,
+      "score": 600.0,
+      "lap_time": null,
+      "valid": false,
+      "max_error": 0.03386635816817099,
+      "params": {
+        "kp": 119.97037439021686,
+        "ki": 3.8456274775446238,
+        "kd": 18.11448950566089,
+        "pid_limit": 21.56593977767736,
+        "straight_speed": 0.8503876157534169,
+        "turn_speed": 0.8611752270063641,
+        "error_threshold": 0.025,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 71,
+      "score": 27.579999999998687,
+      "lap_time": 27.579999999998687,
+      "valid": true,
+      "max_error": 0.04724226242539879,
+      "params": {
+        "kp": 120.05060164147211,
+        "ki": 4.11809569572714,
+        "kd": 17.85837070658859,
+        "pid_limit": 21.836361146340348,
+        "straight_speed": 0.6070988112663699,
+        "turn_speed": 0.6902472185067335,
+        "error_threshold": 0.025,
+        "smoothing": 0.2889457659426735
+      }
+    },
+    {
+      "iteration": 72,
+      "score": 32.83999999999868,
+      "lap_time": 32.83999999999868,
+      "valid": true,
+      "max_error": 0.04758607906629705,
+      "params": {
+        "kp": 120.04518885511422,
+        "ki": 4.102773233579009,
+        "kd": 18.008541455510564,
+        "pid_limit": 22.183682431580387,
+        "straight_speed": 0.5,
+        "turn_speed": 0.9264680853742766,
+        "error_threshold": 0.025,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 73,
+      "score": 600.0,
+      "lap_time": null,
+      "valid": false,
+      "max_error": 0.037017371781505166,
+      "params": {
+        "kp": 120.30877653483644,
+        "ki": 3.8492138433362535,
+        "kd": 17.42267626752155,
+        "pid_limit": 22.183416149018022,
+        "straight_speed": 0.8427745075697506,
+        "turn_speed": 0.9798533841877595,
+        "error_threshold": 0.025,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 74,
+      "score": 30.94999999999801,
+      "lap_time": 30.94999999999801,
+      "valid": true,
+      "max_error": 0.04674966366152387,
+      "params": {
+        "kp": 120.39831591579707,
+        "ki": 3.7442343263589164,
+        "kd": 17.950101562541285,
+        "pid_limit": 21.863326108475345,
+        "straight_speed": 0.5958060205335578,
+        "turn_speed": 0.5565911231508296,
+        "error_threshold": 0.002,
+        "smoothing": 0.23400010560655815
+      }
+    },
+    {
+      "iteration": 75,
+      "score": 600.0,
+      "lap_time": null,
+      "valid": false,
+      "max_error": 0.03552702564127672,
+      "params": {
+        "kp": 120.22268504332445,
+        "ki": 4.018950518142982,
+        "kd": 17.860813734768435,
+        "pid_limit": 22.111229058686597,
+        "straight_speed": 0.8436139417418851,
+        "turn_speed": 0.8220059672939727,
+        "error_threshold": 0.025,
+        "smoothing": 0.15724711213288467
+      }
+    },
+    {
+      "iteration": 76,
+      "score": 21.919999999999845,
+      "lap_time": 21.919999999999845,
+      "valid": true,
+      "max_error": 0.04737093209355661,
+      "params": {
+        "kp": 120.02385021216047,
+        "ki": 4.102858786707345,
+        "kd": 18.068764706238813,
+        "pid_limit": 21.815660443293783,
+        "straight_speed": 1.0004941672978112,
+        "turn_speed": 0.8382157440214584,
+        "error_threshold": 0.002,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 77,
+      "score": 600.0,
+      "lap_time": null,
+      "valid": true,
+      "max_error": 0.04733539117548152,
+      "params": {
+        "kp": 120.19559095176196,
+        "ki": 3.964554158261813,
+        "kd": 17.796251948184462,
+        "pid_limit": 22.242082826574975,
+        "straight_speed": 1.0607261065964373,
+        "turn_speed": 0.5544029967378536,
+        "error_threshold": 0.025,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 78,
+      "score": 23.464999999999524,
+      "lap_time": 23.464999999999524,
+      "valid": true,
+      "max_error": 0.047484218677373694,
+      "params": {
+        "kp": 120.50465592093107,
+        "ki": 3.9737017809368314,
+        "kd": 18.17127579925327,
+        "pid_limit": 22.02927337004949,
+        "straight_speed": 0.7247893281671,
+        "turn_speed": 0.8394475039624684,
+        "error_threshold": 0.019406916784925517,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 79,
+      "score": 21.11500000000001,
+      "lap_time": 21.11500000000001,
+      "valid": true,
+      "max_error": 0.04747070106389935,
+      "params": {
+        "kp": 120.40753487364934,
+        "ki": 4.161898541020884,
+        "kd": 17.724252413251044,
+        "pid_limit": 22.242096076593487,
+        "straight_speed": 1.0806952883208947,
+        "turn_speed": 0.8994197876741113,
+        "error_threshold": 0.002,
+        "smoothing": 0.3
+      }
+    },
+    {
+      "iteration": 80,
+      "score": 43.405000000003945,
+      "lap_time": 43.405000000003945,
+      "valid": true,
+      "max_error": 0.04730250028204877,
+      "params": {
+        "kp": 120.13450673730733,
+        "ki": 4.051026134277327,
+        "kd": 17.754666866261797,
+        "pid_limit": 22.271439597345676,
+        "straight_speed": 1.2118150019927518,
+        "turn_speed": 1.0,
+        "error_threshold": 0.002,
+        "smoothing": 0.3
+      }
+    }
+  ]
+}

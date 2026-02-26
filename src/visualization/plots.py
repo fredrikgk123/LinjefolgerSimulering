@@ -4,7 +4,7 @@ import matplotlib
 matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
 import numpy as np
-from config import MAP_SIZE_M, QTR_CHANNELS, QTR_SPACING_M, QTR_SENSOR_OFFSET_M, DT
+from config import MAP_SIZE_M, QTR_CHANNELS, QTR_SPACING_M, QTR_SENSOR_OFFSET_M, DT, CHECKPOINT_RADIUS
 
 # ── Palette ──────────────────────────────────────────────────────────────────
 BG        = "#0d1117"
@@ -18,6 +18,8 @@ ERR_COL   = "#d2a8ff"
 VL_COL    = "#58a6ff"
 VR_COL    = "#ffa657"
 ZERO_COL  = "#484f58"
+CP_PENDING = "#ffd700"   # yellow  — checkpoint not yet cleared
+CP_DONE    = "#39d353"   # green   — checkpoint cleared
 
 
 def _style_ax(ax, title):
@@ -28,16 +30,19 @@ def _style_ax(ax, title):
         sp.set_edgecolor(BORDER)
 
 
-def setup_realtime_plot(map_arr, spawn=None, sf_radius=0.10):
+def setup_realtime_plot(map_arr, spawn=None, sf_radius=0.10, checkpoints=None):
     """
     Creates the live dashboard figure.
     Returns (update_fn, robot_artist).
-    update_fn(robot, readings, e_y, vL, vR, t, lap_time, elapsed) refreshes all panels.
+    update_fn(robot, readings, e_y, vL, vR, t, lap_time, elapsed, cp_cleared)
+    refreshes all panels.
 
     Args:
-        map_arr:   2-D grayscale array of the track
-        spawn:     (x, y) of start/finish centre in world metres (optional)
-        sf_radius: radius of the start/finish zone in metres
+        map_arr:     2-D grayscale array of the track
+        spawn:       (x, y) of start/finish centre in world metres (optional)
+        sf_radius:   radius of the start/finish zone in metres
+        checkpoints: list of (x, y) waypoints — drawn as yellow circles that
+                     turn green once the robot passes through them
     """
     W, H = MAP_SIZE_M
     n = QTR_CHANNELS
@@ -98,6 +103,28 @@ def setup_realtime_plot(map_arr, spawn=None, sf_radius=0.10):
         ax_map.add_patch(sf_ring)
         ax_map.plot(sx, sy, "o", color="#00ff88", markersize=6, zorder=5)
 
+    # ── Checkpoint circles ────────────────────────────────────────────────────
+    # Each checkpoint gets a filled circle (low alpha) + a solid ring, plus a
+    # label.  They start yellow (pending) and turn green when cleared.
+    _checkpoints  = checkpoints or []
+    cp_fills      = []
+    cp_rings      = []
+    cp_labels     = []
+    for i, (cx, cy) in enumerate(_checkpoints):
+        fill = plt.Circle((cx, cy), CHECKPOINT_RADIUS,
+                           color=CP_PENDING, alpha=0.15, zorder=2)
+        ring = plt.Circle((cx, cy), CHECKPOINT_RADIUS,
+                           fill=False, edgecolor=CP_PENDING,
+                           linewidth=2.0, linestyle="-", zorder=4)
+        ax_map.add_patch(fill)
+        ax_map.add_patch(ring)
+        lbl = ax_map.text(cx, cy, str(i + 1),
+                          color=CP_PENDING, fontsize=9, fontweight="bold",
+                          ha="center", va="center", zorder=5)
+        cp_fills.append(fill)
+        cp_rings.append(ring)
+        cp_labels.append(lbl)
+
     # ── Lap timer text ────────────────────────────────────────────────────────
     timer_text = ax_map.text(
         0.02, 0.97, "", transform=ax_map.transAxes,
@@ -147,12 +174,19 @@ def setup_realtime_plot(map_arr, spawn=None, sf_radius=0.10):
     ARROW = QTR_SENSOR_OFFSET_M  # use same length as sensor offset for the heading line
 
     def update(robot, readings, e_y, vL, vR, t,
-               lap_time=None, elapsed=None):
+               lap_time=None, elapsed=None, cp_cleared=0):
         px, py = float(robot.position[0]), float(robot.position[1])
         traj_x.append(px); traj_y.append(py)
         t_log.append(t)
         err_buf.append(e_y)
         vL_buf.append(vL); vR_buf.append(vR)
+
+        # ── Checkpoint colours ────────────────────────────────────────────────
+        for i, (fill, ring, lbl) in enumerate(zip(cp_fills, cp_rings, cp_labels)):
+            col = CP_DONE if i < cp_cleared else CP_PENDING
+            fill.set_facecolor(col)
+            ring.set_edgecolor(col)
+            lbl.set_color(col)
 
         # ── Timer text ────────────────────────────────────────────────────────
         if lap_time is not None:

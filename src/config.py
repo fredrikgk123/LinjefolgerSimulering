@@ -43,6 +43,22 @@ MAX_LAP_TIME        = 60.0   # seconds — DNF cutoff in optimizer
 # (total sensor weight stays below LINE_THRESH continuously)
 MAX_LINE_LOSS_TIME  = 1.0    # seconds — more than this = truly off track / DNF
 
+# ---- PID + SPEED CONTROLLER DEFAULTS ----
+# These are the parameters used by main.py for the visual run AND as the
+# initial guess / centre point for the optimizer in lap_optimizer.py.
+# Change values here — both programs will pick them up automatically.
+PID_KP               = 120.0   # proportional gain
+PID_KI               = 4.0     # integral gain
+PID_KD               = 18.0    # derivative gain
+PID_LIMIT            = 22.0    # output (angular velocity) clamp
+PID_INTEGRAL_LIMIT   = 1.2     # windup guard
+PID_DERIV_FILTER     = 0.10    # low-pass coefficient on derivative term
+
+SC_STRAIGHT_SPEED    = 0.91    # m/s on straights
+SC_TURN_SPEED        = 0.70    # m/s in corners
+SC_ERROR_THRESHOLD   = 0.007   # lateral error that triggers speed reduction (m)
+SC_SMOOTHING         = 0.12    # first-order speed blend coefficient
+
 # ---- SENSOR NOISE SEED ----
 # Fixed seed makes every simulation deterministic.
 # main.py and lap_optimizer.py both set np.random.seed(NOISE_SEED) before running.
@@ -55,10 +71,41 @@ NOISE_SEED = 42
 # x, y  : world coordinates in metres (origin = bottom-left)
 # theta  : heading in radians (0 = pointing right, pi/2 = pointing up)
 SPAWN_REGISTRY = {
-    "bane_fase2.png": {"x": 1.00, "y": 0.14, "theta":  0.00},
+    "bane_fase2.png": {"x": 2.00, "y": 0.14, "theta":  0.00},
     "suzuka.png":     {"x": 0.55, "y": 0.68, "theta": -0.40},
     # "my_track.png": {"x": 1.00, "y": 0.50, "theta":  0.00},  # add yours here
 }
 
 # Define MAX_LATERAL_ERROR as a global constant
 MAX_LATERAL_ERROR = 0.05  # Maximum lateral error in meters (adjust as needed)
+
+# ---- CHECKPOINT REGISTRY ----
+# Checkpoints are (x, y) positions the robot must pass through (within
+# CHECKPOINT_RADIUS metres) IN ORDER before a lap completion is counted.
+# This prevents the optimizer from "teleporting" past sections of the track.
+# Add one entry per track; leave empty list [] to disable checkpoints for a track.
+#
+# How to find good checkpoint positions:
+#   Run main.py once with --track and note the robot's path.
+#   Pick evenly-spaced waypoints around the circuit.
+#   Four checkpoints (at ~25 %, 50 %, 75 %, 100 % of the circuit) is enough.
+#
+CHECKPOINT_RADIUS = 0.10   # metres — how close the robot must get to each checkpoint
+
+CHECKPOINT_REGISTRY = {
+    # bane_fase2.png — four checkpoints distributed around the track
+    "bane_fase2.png": [
+        (2.80, 0.14),   # far end of bottom straight
+        (3.80, 1.70),   # top right corner
+        (2.00, 0.50),   # bottom of box
+        (0.20, 1.70),   # top left corner
+    ],
+    # suzuka.png — four checkpoints distributed around the circuit
+    "suzuka.png": [
+        (1.80, 0.68),   # after the first chicane
+        (2.80, 1.20),   # mid-sector 2
+        (1.50, 1.60),   # top of the circuit
+        (0.55, 1.20),   # return section
+    ],
+}
+

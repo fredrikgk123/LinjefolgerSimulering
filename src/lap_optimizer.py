@@ -44,16 +44,18 @@ RENDER_EVERY = 8
 
 # ── Parameter search space ────────────────────────────────────────────────────
 # Each entry: (min, max, initial_guess)
-# Fixed PID constants (must match main.py): integral_limit=1.2, derivative_filter=0.10
+# initial_guess values come from config.py (PID_KP, SC_* …) so that
+# main.py and lap_optimizer.py always start from the same parameters.
+# integral_limit and derivative_filter are fixed and shared via config.py.
 PARAM_SPACE = {
-    "kp":              (40.0,  180.0,  120.0),
-    "ki":              (1.0,   8.0,    4.0),
-    "kd":              (8.0,   30.0,   18.0),
-    "pid_limit":       (12.0,  28.0,   22.0),
-    "straight_speed":  (0.5,   1.4,    0.90),
-    "turn_speed":      (0.3,   0.9,    0.65),
-    "error_threshold": (0.003, 0.020,  0.007),
-    "smoothing":       (0.05,  0.25,   0.12),
+    "kp":              (40.0,  180.0,  PID_KP),
+    "ki":              (1.0,   8.0,    PID_KI),
+    "kd":              (8.0,   30.0,   PID_KD),
+    "pid_limit":       (12.0,  28.0,   PID_LIMIT),
+    "straight_speed":  (0.5,   1.4,    SC_STRAIGHT_SPEED),
+    "turn_speed":      (0.3,   0.9,    SC_TURN_SPEED),
+    "error_threshold": (0.003, 0.020,  SC_ERROR_THRESHOLD),
+    "smoothing":       (0.05,  0.25,   SC_SMOOTHING),
 }
 
 
@@ -99,7 +101,7 @@ def run_lap(track_filename: str, params: dict, show_viz: bool = False):
     pid = PID(
         kp=params["kp"], ki=params["ki"], kd=params["kd"],
         limit=params["pid_limit"],
-        integral_limit=1.2, derivative_filter=0.10   # must match main.py
+        integral_limit=PID_INTEGRAL_LIMIT, derivative_filter=PID_DERIV_FILTER   # from config.py
     )
     sc = SpeedController(
         straight_speed=params["straight_speed"],
@@ -130,6 +132,11 @@ def run_lap(track_filename: str, params: dict, show_viz: bool = False):
     valid        = True
     last_e_y     = 0.0
     line_loss_t  = 0.0   # how long the line has been continuously lost
+
+    # ── Checkpoint system ────────────────────────────────────────────────────
+    checkpoints     = CHECKPOINT_REGISTRY.get(track_filename, [])
+    cp_next         = 0          # index of the next checkpoint to hit
+    cp_total        = len(checkpoints)
 
     traj = []  # Initialize trajectory list
 
@@ -168,11 +175,22 @@ def run_lap(track_filename: str, params: dict, show_viz: bool = False):
         rx, ry        = robot.position
         dist_to_start = np.hypot(rx - sx, ry - sy)
 
+        # ── Advance checkpoint counter ────────────────────────────────────────
+        if cp_next < cp_total:
+            cx, cy = checkpoints[cp_next]
+            if np.hypot(rx - cx, ry - cy) < CHECKPOINT_RADIUS:
+                cp_next += 1   # checkpoint cleared — move to next
+
         if not departed and dist_to_start > MIN_DEPARTURE_DIST:
             departed = True
             depart_t = t
         if departed and dist_to_start < START_FINISH_RADIUS:
-            lap_time = t - depart_t   # time since departure — matches main.py
+            # Only count the lap if every checkpoint was visited
+            if cp_next < cp_total:
+                # Skipped at least one checkpoint — invalidate
+                valid = False
+            else:
+                lap_time = t - depart_t   # time since departure — matches main.py
             break
 
         traj.append(tuple(robot.position))  # Append the current position to the trajectory
@@ -561,7 +579,7 @@ def simulate_lap(track_filename, params, show_viz=False):
     pid = PID(
         kp=params["kp"], ki=params["ki"], kd=params["kd"],
         limit=params["pid_limit"],
-        integral_limit=1.2, derivative_filter=0.10
+        integral_limit=PID_INTEGRAL_LIMIT, derivative_filter=PID_DERIV_FILTER
     )
     sc = SpeedController(
         straight_speed=params["straight_speed"],
@@ -592,6 +610,11 @@ def simulate_lap(track_filename, params, show_viz=False):
     valid = True
     last_e_y = 0.0
     line_loss_t = 0.0
+
+    # ── Checkpoint system ────────────────────────────────────────────────────
+    checkpoints = CHECKPOINT_REGISTRY.get(track_filename, [])
+    cp_next     = 0
+    cp_total    = len(checkpoints)
 
     traj = []
 
@@ -630,11 +653,20 @@ def simulate_lap(track_filename, params, show_viz=False):
         rx, ry = robot.position
         dist_to_start = np.hypot(rx - sx, ry - sy)
 
+        # ── Advance checkpoint counter ────────────────────────────────────────
+        if cp_next < cp_total:
+            cx, cy = checkpoints[cp_next]
+            if np.hypot(rx - cx, ry - cy) < CHECKPOINT_RADIUS:
+                cp_next += 1
+
         if not departed and dist_to_start > MIN_DEPARTURE_DIST:
             departed = True
             depart_t = t
         if departed and dist_to_start < START_FINISH_RADIUS:
-            lap_time = t - depart_t
+            if cp_next < cp_total:
+                valid = False   # Missed at least one checkpoint
+            else:
+                lap_time = t - depart_t
             break
 
         traj.append(tuple(robot.position))

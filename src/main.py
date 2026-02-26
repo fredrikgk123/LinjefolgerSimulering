@@ -87,24 +87,37 @@ def main():
     # Differential drive:  w = (vR-vL)/WB,  vL = v - w·WB/2,  vR = v + w·WB/2
     # So pid output directly becomes angular velocity command.
     # Aggressive tuning: fast turns, strong recovery, minimal line loss
-    pid = PID(kp=120.0, ki=4.0, kd=18.0,
-              limit=22.0, integral_limit=1.2, derivative_filter=0.10)
+    pid = PID(kp=PID_KP, ki=PID_KI, kd=PID_KD,
+              limit=PID_LIMIT,
+              integral_limit=PID_INTEGRAL_LIMIT,
+              derivative_filter=PID_DERIV_FILTER)
 
     # ── Speed Controller (State Machine) ──────────────────────────────────────
     # Increases speed when robot is on straight sections (low error, low turning)
     # Reduces speed during turns for stability
     speed_controller = SpeedController(
-        straight_speed=0.91,      # High speed on straight sections
-        turn_speed=0.70,          # Moderate speed in turns for stability
-        error_threshold=0.007,    # 7mm threshold for state switching
-        smoothing=0.12            # Smooth transitions for stability
+        straight_speed=SC_STRAIGHT_SPEED,
+        turn_speed=SC_TURN_SPEED,
+        error_threshold=SC_ERROR_THRESHOLD,
+        smoothing=SC_SMOOTHING,
     )
+
+    # ── Checkpoint system ─────────────────────────────────────────────────────
+    _track_fn   = os.path.basename(track_path) if track_path else None
+    checkpoints = CHECKPOINT_REGISTRY.get(_track_fn, []) if _track_fn else []
+    cp_next     = 0          # index of the next checkpoint to reach
+    cp_total    = len(checkpoints)
+    if cp_total:
+        print(f"Checkpoint system active: {cp_total} checkpoints must be cleared in order.")
+    else:
+        print("No checkpoints defined for this track — lap validation via start/finish zone only.")
 
     # ── Live visualisation ────────────────────────────────────────────────────
     update_plot, robot_artist = setup_realtime_plot(
         blur_arr,
         spawn=(x_start, y_start),
-        sf_radius=START_FINISH_RADIUS
+        sf_radius=START_FINISH_RADIUS,
+        checkpoints=checkpoints,
     )
 
     traj, err_log, sensor_log = [], [], []
@@ -117,9 +130,11 @@ def main():
     lap_time    = None
     lap_start_t = 0.0
 
+
     np.random.seed(NOISE_SEED)   # deterministic sensor noise — matches optimizer
-    t    = 0.0
-    step = 0
+    t           = 0.0
+    step        = 0
+    line_loss_t = 0.0
 
     while t < SIM_TIME:
         # ── Sense ─────────────────────────────────────────────────────────────
@@ -155,22 +170,36 @@ def main():
         # ── Lap timer ─────────────────────────────────────────────────────────
         dist_to_start = np.hypot(robot.position[0] - x_start,
                                  robot.position[1] - y_start)
+
+        # ── Advance checkpoint counter ─────────────────────────────────────────
+        if cp_next < cp_total:
+            cx, cy = checkpoints[cp_next]
+            if np.hypot(robot.position[0] - cx, robot.position[1] - cy) < CHECKPOINT_RADIUS:
+                print(f"  Checkpoint {cp_next + 1}/{cp_total} cleared at t={t:.2f}s")
+                cp_next += 1
+
         if not lap_started and dist_to_start > MIN_DEPARTURE_DIST:
             lap_started = True
             lap_start_t = t
         if lap_started and lap_time is None and dist_to_start < START_FINISH_RADIUS:
-            lap_time = t - lap_start_t
-            print(f"\n*** LAP COMPLETE — time: {lap_time:.3f} s ***\n")
-            # Render the final frame then stop immediately
-            update_plot(robot, readings, e_y, robot.vL, robot.vR, t,
-                        lap_time=lap_time, elapsed=lap_time)
-            break
+            if cp_next < cp_total:
+                print(f"  *** FALSE LAP — only {cp_next}/{cp_total} checkpoints cleared. "
+                      f"Continuing... ***")
+            else:
+                lap_time = t - lap_start_t
+                print(f"\n*** LAP COMPLETE — time: {lap_time:.3f} s ***\n")
+                # Render the final frame then stop immediately
+                update_plot(robot, readings, e_y, robot.vL, robot.vR, t,
+                            lap_time=lap_time, elapsed=lap_time,
+                            cp_cleared=cp_next)
+                break
 
         # ── Render ────────────────────────────────────────────────────────────
         if step % RENDER_EVERY == 0:
             elapsed = (t - lap_start_t) if lap_started and lap_time is None else lap_time
             update_plot(robot, readings, e_y, robot.vL, robot.vR, t,
-                        lap_time=lap_time, elapsed=elapsed if lap_started else None)
+                        lap_time=lap_time, elapsed=elapsed if lap_started else None,
+                        cp_cleared=cp_next)
 
         # Handle line loss termination
         if total_w <= LINE_THRESH:

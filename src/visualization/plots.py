@@ -255,7 +255,7 @@ def setup_realtime_plot(map_arr, spawn=None, sf_radius=0.10, checkpoints=None):
         spd_L.set_data(tarr, vL_buf)
         spd_R.set_data(tarr, vR_buf)
         ax_speed.set_xlim(t_lo, t_hi)
-        ax_speed.set_ylim(-0.2, 1.0)
+        ax_speed.set_ylim(-0.2, 1.5)
 
         fig.canvas.draw_idle()
         fig.canvas.flush_events()

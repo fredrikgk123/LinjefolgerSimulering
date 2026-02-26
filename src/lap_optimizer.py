@@ -56,12 +56,12 @@ RENDER_EVERY = 8
 PARAM_SPACE = {
     # ── PID ───────────────────────────────────────────────────────────────────
     "kp":               (40.0,  200.0,  PID_KP),
-    "ki":               (0.0,   10.0,   PID_KI),
+    "ki":               (0.0,   20.0,   PID_KI),
     "kd":               (5.0,   40.0,   PID_KD),
     "pid_limit":        (10.0,  35.0,   PID_LIMIT),
     # ── Speed controller ──────────────────────────────────────────────────────
-    "straight_speed":   (0.5,   1.4,    SC_STRAIGHT_SPEED),
-    "turn_speed":       (0.3,   1.0,    SC_TURN_SPEED),
+    "straight_speed":   (0.5,   2.0,    SC_STRAIGHT_SPEED),
+    "turn_speed":       (0.3,   1.5,    SC_TURN_SPEED),
     "error_threshold":  (0.002, 0.025,  SC_ERROR_THRESHOLD),
     "smoothing":        (0.03,  0.30,   SC_SMOOTHING),
 }
@@ -132,6 +132,9 @@ def run_lap(track_filename: str, params: dict, show_viz: bool = False):
     robot.vR = 0.0
     sensors        = QTRArray()
 
+    # Set random seed at the start BEFORE any operations - matches main.py
+    np.random.seed(NOISE_SEED)
+
     update_plot = None
     if show_viz:
         from visualization.plots import setup_realtime_plot
@@ -157,8 +160,6 @@ def run_lap(track_filename: str, params: dict, show_viz: bool = False):
 
     traj = []  # Initialize trajectory list
 
-    # Set random seed at the start for deterministic noise - matches main.py
-    np.random.seed(NOISE_SEED)
     t = 0.0
     step = 0
 

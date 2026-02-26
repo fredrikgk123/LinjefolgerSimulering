@@ -1,8 +1,16 @@
 # main.py
 
-import argparse
-import os
+# CRITICAL FIX: Set random seed at the VERY FIRST import!
+# plots.py imports matplotlib, so we must set seed before importing plots
 import numpy as np
+import sys
+import os
+sys.path.insert(0, os.path.dirname(__file__))
+from config import NOISE_SEED
+np.random.seed(NOISE_SEED)
+
+# Now safe to import everything else
+import argparse
 from PIL import ImageFilter
 import matplotlib
 try:
@@ -83,6 +91,9 @@ def main():
     else:
         print("No checkpoints defined — lap valid via start/finish zone only.")
 
+    # NOTE: Random seed is set at module import time (before matplotlib)
+    # to ensure identical random state with optimizer
+
     # ── Live visualisation ────────────────────────────────────────────────────
     update_plot, _ = setup_realtime_plot(
         blur_arr,
@@ -99,13 +110,11 @@ def main():
     lap_time     = None
     lap_start_t  = 0.0
 
-    # Set random seed at the start for deterministic noise
-    np.random.seed(NOISE_SEED)
     t           = 0.0
     step        = 0
     line_loss_t = 0.0
 
-    while t < SIM_TIME:
+    while t < MAX_LAP_TIME:  # Use MAX_LAP_TIME (matches optimizer)
         # ── Sense ─────────────────────────────────────────────────────────────
         readings = sensors.read(robot, blur_arr)
         weights  = readings ** 2
@@ -174,15 +183,7 @@ def main():
         t    += DT
         step += 1
 
-    # ── Summary ───────────────────────────────────────────────────────────────
-    metrics = analyze_tracking_performance(err_log, DT)
-    print_performance_report(metrics)
-    if lap_time is not None:
-        print(f"Lap time: {lap_time:.3f} s")
-    else:
-        print("No lap completed.")
-
-    plot_results(traj, sensor_log, err_log, map_arr=np.array(blurred, dtype=np.uint8))
+    # Real-time visualization is complete - no summary popup needed
 
 
 if __name__ == "__main__":

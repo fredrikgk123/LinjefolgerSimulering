@@ -183,7 +183,8 @@ def main():
         t    += DT
         step += 1
 
-    # Real-time visualization is complete - no summary popup needed
+    # ── Summary ───────────────────────────────────────────────────────────────
+    plot_results(traj, sensor_log, err_log, map_arr=np.array(blurred, dtype=np.uint8))
 
 
 if __name__ == "__main__":

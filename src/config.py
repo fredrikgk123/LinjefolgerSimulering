@@ -165,7 +165,7 @@ CHECKPOINT_REGISTRY = {
 
 START_FINISH_RADIUS = 0.10   # metres — robot must re-enter this circle to finish a lap
 MIN_DEPARTURE_DIST  = 0.30   # metres — must leave start zone before finish counts
-MAX_LAP_TIME        = 60.0   # seconds — any lap slower than this is a DNF in optimizer
+MAX_LAP_TIME        = 45.0   # seconds — any lap slower than this is a DNF (matches SIM_TIME)
 MAX_LINE_LOSS_TIME  = 0.3    # seconds — continuous line-loss longer than this = DNF
 LINE_THRESH         = 0.08   # minimum total sensor weight to count as "on line"
                              # (used identically by main.py and lap_optimizer.py)

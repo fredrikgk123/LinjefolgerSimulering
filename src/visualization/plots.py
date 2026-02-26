@@ -175,7 +175,7 @@ def setup_realtime_plot(map_arr, spawn=None, sf_radius=0.10, checkpoints=None):
     ax_speed.legend(fontsize=7, facecolor=PANEL_BG, edgecolor=BORDER,
                     labelcolor="white", loc="upper right")
 
-    plt.show(block=True)
+    plt.show(block=False)
     fig.canvas.draw()
 
     # ── Closure state ─────────────────────────────────────────────────────────

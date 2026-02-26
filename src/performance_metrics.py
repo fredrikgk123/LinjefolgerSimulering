@@ -6,6 +6,7 @@ Calculates key metrics from simulation data.
 
 import numpy as np
 
+
 def analyze_tracking_performance(err_log, dt=0.005):
     """
     Analyze tracking performance from error log.
@@ -75,46 +76,4 @@ def print_performance_report(metrics):
     print(f"  • Steady-State Error: {metrics['steady_state_error']*1000:.2f} mm")
     print(f"  • Oscillation Freq:   {metrics['oscillation_frequency']:.2f} Hz")
     print("="*50 + "\n")
-
-
-def compare_pid_configs(configs_and_results):
-    """
-    Compare multiple PID configurations.
-
-    Args:
-        configs_and_results: List of tuples (config_name, err_log)
-    """
-    print("\n" + "="*70)
-    print("  PID CONFIGURATION COMPARISON")
-    print("="*70)
-    print(f"\n{'Config':<20} {'Max(mm)':<10} {'RMS(mm)':<10} {'Settle(s)':<12} {'SS(mm)':<10}")
-    print("-"*70)
-
-    for name, err_log in configs_and_results:
-        metrics = analyze_tracking_performance(err_log)
-        settle_str = f"{metrics['settling_time']:.2f}" if metrics['settling_time'] else "N/A"
-        print(f"{name:<20} {metrics['max_error']*1000:<10.2f} {metrics['rms_error']*1000:<10.2f} "
-              f"{settle_str:<12} {metrics['steady_state_error']*1000:<10.2f}")
-
-    print("="*70 + "\n")
-
-
-# Example usage (can be integrated into main.py):
-if __name__ == "__main__":
-    # Simulate some test data
-    print("Performance Analysis Utility")
-    print("----------------------------")
-    print("To use this in your simulation, import and call:")
-    print("  from performance_metrics import analyze_tracking_performance, print_performance_report")
-    print("\nThen at the end of your simulation:")
-    print("  metrics = analyze_tracking_performance(err_log, DT)")
-    print("  print_performance_report(metrics)")
-
-    # Example with synthetic data
-    print("\nExample with synthetic error data:")
-    t = np.linspace(0, 15, 3000)
-    err_example = 0.04 * np.exp(-t/2) * np.sin(10*t)  # Damped oscillation
-
-    metrics = analyze_tracking_performance(err_example, dt=0.005)
-    print_performance_report(metrics)
 

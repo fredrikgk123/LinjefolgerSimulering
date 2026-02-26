@@ -1,9 +1,7 @@
 # config.py
 
-import numpy as np
 
 # ---- TRACK ----
-TRACK_WIDTH_M = 0.020     # 20 mm — competition standard (increased from 15mm)
 PX_PER_METER = 500        # high resolution for realism
 MAP_SIZE_M = (4.0, 2.0)   # width, height in meters
 
@@ -17,7 +15,6 @@ QTR_ADC_BITS = 12
 
 # ---- ROBOT PHYSICS ----
 WHEEL_BASE = 0.12         # distance between rear wheels
-WHEEL_RADIUS = 0.03
 MAX_WHEEL_SPEED = 1.0
 
 # Motor model
@@ -25,9 +22,7 @@ MOTOR_TAU = 0.05          # 50 ms — faster motor response
 
 # COM & mass distribution
 ROBOT_MASS = 0.9          # kg
-COM_OFFSET = np.array([0.02, 0.0])  # forward shift of COM
 MU_SLIDE = 1.14           # sliding friction coefficient
-MU_ROLL = 0.02            # rolling resistance
 
 # ---- SIMULATION ----
 DT = 0.005
@@ -67,7 +62,7 @@ NOISE_SEED = 42
 
 # ---- SPAWN REGISTRY ----
 # Single source of truth for all spawn positions.
-# Used by: main.py, multi_track_simulator.py, lap_optimizer.py
+# Used by: main.py, lap_optimizer.py, preview_track.py
 # x, y  : world coordinates in metres (origin = bottom-left)
 # theta  : heading in radians (0 = pointing right, pi/2 = pointing up)
 SPAWN_REGISTRY = {
@@ -102,10 +97,10 @@ CHECKPOINT_REGISTRY = {
     ],
     # suzuka.png — four checkpoints distributed around the circuit
     "suzuka.png": [
-        (1.80, 0.68),   # after the first chicane
-        (2.80, 1.20),   # mid-sector 2
-        (1.50, 1.60),   # top of the circuit
-        (0.55, 1.20),   # return section
+        (1.87, 0.68),   # after the first chicane
+        (3.87, 1.30),   # mid-sector 2
+        (1.95, 1.45),   # top of the circuit
+        (0.15, 1.05),   # return section
     ],
 }
 

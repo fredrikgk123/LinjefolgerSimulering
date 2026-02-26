@@ -63,8 +63,6 @@ def setup_realtime_plot(map_arr, spawn=None, sf_radius=0.10, checkpoints=None):
     ax_speed  = fig.add_subplot(gs[2, 1])
 
     # ── Track map ─────────────────────────────────────────────────────────────
-    # Track data is already inverted during generation (line 18 of track_generator.py)
-    # Don't invert again - display as-is to match what robot is tracking
     ax_map.imshow(map_arr,
                   cmap="gray", vmin=0, vmax=255,
                   extent=[0, W, 0, H],

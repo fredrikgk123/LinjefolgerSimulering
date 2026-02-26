@@ -61,6 +61,12 @@ class SpeedController:
         self.current_speed = straight_speed
         self.speed_filtered = straight_speed
 
+    def reset(self):
+        """Reset state — call at the start of a new simulation run."""
+        self.state = "STRAIGHT"
+        self.current_speed = self.straight_speed
+        self.speed_filtered = self.straight_speed
+
     def update(self, lateral_error, angular_velocity_cmd, pid_limit):
         """
         Update speed based on lateral error and steering command.

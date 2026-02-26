@@ -50,6 +50,9 @@ def main():
     robot          = Robot()
     robot.position = np.array([x_start, y_start])
     robot.theta    = theta_start
+    # Ensure wheel speeds start at zero for consistency
+    robot.vL = 0.0
+    robot.vR = 0.0
     sensors        = QTRArray()
 
     # ── Controllers (values from config.py) ───────────────────────────────────
@@ -59,12 +62,17 @@ def main():
         integral_limit=PID_INTEGRAL_LIMIT,
         derivative_filter=PID_DERIV_FILTER,
     )
+    # Reset PID state to ensure clean start
+    pid.reset()
+
     speed_controller = SpeedController(
         straight_speed=SC_STRAIGHT_SPEED,
         turn_speed=SC_TURN_SPEED,
         error_threshold=SC_ERROR_THRESHOLD,
         smoothing=SC_SMOOTHING,
     )
+    # Reset speed controller state to ensure clean start
+    speed_controller.reset()
 
     # ── Checkpoint system ─────────────────────────────────────────────────────
     checkpoints = CHECKPOINT_REGISTRY.get(track_filename, [])
@@ -85,12 +93,13 @@ def main():
 
     traj, err_log, sensor_log = [], [], []
     last_e_y     = 0.0
-    LINE_THRESH  = 0.08
+    # LINE_THRESH is imported from config.py
     RENDER_EVERY = 8
     lap_started  = False
     lap_time     = None
     lap_start_t  = 0.0
 
+    # Set random seed at the start for deterministic noise
     np.random.seed(NOISE_SEED)
     t           = 0.0
     step        = 0
@@ -138,7 +147,8 @@ def main():
         elif lap_started and lap_time is None and dist_to_start < START_FINISH_RADIUS:
             if cp_next < cp_total:
                 print(f"  *** FALSE LAP — only {cp_next}/{cp_total} checkpoints cleared. "
-                      f"Continuing... ***")
+                      f"Run invalid. ***")
+                break
             else:
                 lap_time = t - lap_start_t
                 print(f"\n*** LAP COMPLETE — time: {lap_time:.3f} s ***\n")

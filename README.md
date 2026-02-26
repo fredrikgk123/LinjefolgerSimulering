@@ -17,34 +17,54 @@ pip install numpy matplotlib pillow
 
 ```
 Simulering/
-├── src/
-│   ├── config.py              ← ★ ALL parameters live here — start here
-│   ├── main.py                ← Entry point (visual run)
-│   ├── lap_optimizer.py       ← Lap-time optimizer (CMA-ES / random / grid)
-│   ├── performance_metrics.py ← RMS / settling time calculations
-│   ├── preview_track.py       ← Plot track with start/finish zone for inspection
-│   ├── control/
-│   │   └── pid_controller.py  ← PID + SpeedController state machine
-│   ├── physics/
-│   │   ├── robot_model.py     ← Differential drive kinematics
-│   │   └── friction.py        ← Tyre friction model
-│   ├── sensors/
-│   │   └── qtr_array.py       ← QTR-HD-25RC sensor array simulation
-│   ├── track/
-│   │   └── image_loader.py    ← Universal loader for track images
-│   ├── visualization/
-│   │   └── plots.py           ← Live + summary plots (incl. checkpoint circles)
-│   └── tests/
-│       ├── debug_sensors.py   ← Sensor debug at spawn position
-│       └── test_setup.py      ← Import + simulation sanity check
+├── .gitignore                 ← Git configuration (prevents cache/temp files)
+├── README.md                  ← This file
+├── CONSISTENCY_FIXES.md       ← Technical details of recent fixes
+├── CLEANUP_SUMMARY.md         ← Cleanup actions performed
+├── FINAL_STRUCTURE.md         ← Final structure documentation
+├── verify_cleanup.py          ← Script to verify project cleanliness
+├── verify_structure.py        ← Script to verify test structure
 ├── assets/                    ← Track images
 │   ├── bane_fase2.png
 │   ├── suzuka.png
 │   └── for_readme/
 ├── docs/                      ← Detailed documentation
-├── output/                    ← Generated results (auto-created)
-└── README.md
+│   ├── MULTI_TRACK_GUIDE.md
+│   ├── OPTIMIZATION_GUIDE.md
+│   ├── OPTIMIZATION_README.md
+│   ├── README.md
+│   └── VISUALIZATION_GUIDE.md
+├── output/                    ← Generated optimization results (auto-created)
+└── src/                       ← Source code
+    ├── config.py              ← ★ ALL parameters live here — start here
+    ├── main.py                ← Entry point (visual run)
+    ├── lap_optimizer.py       ← Lap-time optimizer (CMA-ES / random / grid)
+    ├── performance_metrics.py ← RMS / settling time calculations
+    ├── preview_track.py       ← Plot track with start/finish zone for inspection
+    ├── control/
+    │   ├── __init__.py
+    │   └── pid_controller.py  ← PID + SpeedController state machine
+    ├── physics/
+    │   ├── __init__.py
+    │   ├── friction.py        ← Tyre friction model
+    │   └── robot_model.py     ← Differential drive kinematics
+    ├── sensors/
+    │   ├── __init__.py
+    │   └── qtr_array.py       ← QTR-HD-25RC sensor array simulation
+    ├── tests/                 ← All test utilities (run from this directory)
+    │   ├── debug_sensors.py   ← Sensor debug at spawn position
+    │   ├── test_setup.py      ← Import + simulation sanity check
+    │   ├── test_consistency.py← Consistency verification tests
+    │   └── test_simple.py     ← Simple test runner
+    ├── track/
+    │   ├── __init__.py
+    │   └── image_loader.py    ← Universal loader for track images
+    └── visualization/
+        ├── __init__.py
+        ├── plots.py           ← Live + summary plots (incl. checkpoint circles)
+        └── sensor_overlay.py  ← Sensor visualization overlay
 ```
+
 
 ---
 
@@ -61,6 +81,42 @@ python3 main.py --track ../assets/my_track.png    # Any image you add
 > **Adding your own track:** drop any top-down PNG/JPG into `assets/` and pass it with `--track`.  
 > Image requirements: **dark line on a light background, top-down view**.  
 > Add a spawn position and checkpoints for it in `config.py` (see §SPAWN and §CHECKPOINTS below).
+
+---
+
+## Testing
+
+All test utilities are organized in `src/tests/`. Run them from that directory:
+
+```bash
+cd src/tests
+
+# Validate setup (imports and basic simulation)
+python3 test_setup.py
+
+# Debug sensor readings at spawn position
+python3 debug_sensors.py
+
+# Verify consistency between optimizer and visualization
+MPLBACKEND=Agg python3 test_consistency.py
+
+# Run simple consistency checks
+MPLBACKEND=Agg python3 test_simple.py
+```
+
+> **Note:** Set `MPLBACKEND=Agg` when running headless (without a display) to avoid GUI hangs.
+
+---
+
+## Important: Consistency Guarantees
+
+As of February 26, 2026, the optimizer and visualization are **fully consistent**:
+
+- ✅ **Same parameters → same lap time** (deterministic)
+- ✅ **Optimizer results work in main.py** (reproducible)
+- ✅ **No state pollution between runs** (isolated)
+
+See `CONSISTENCY_FIXES.md` for technical details of the fixes that ensure this.
 
 ---
 
@@ -222,7 +278,10 @@ START_FINISH_RADIUS = 0.10   # m   — robot must re-enter this circle to finish
 MIN_DEPARTURE_DIST  = 0.30   # m   — must leave start zone before finish counts
 MAX_LAP_TIME        = 60.0   # s   — any lap slower than this = DNF in optimizer
 MAX_LINE_LOSS_TIME  = 0.3    # s   — continuous line-loss longer than this = DNF
+LINE_THRESH         = 0.08   # minimum total sensor weight to count as "on line"
 ```
+
+> All five of these apply identically in both the visual run (`main.py`) and the optimizer (`lap_optimizer.py`).
 
 ---
 
@@ -241,9 +300,9 @@ Low-level settings you rarely need to touch.
 
 ## Checkpoint System
 
-If the robot reaches the finish line without clearing all checkpoints:
+If the robot reaches the finish line without clearing all checkpoints, the run stops immediately (same behaviour in both the visual run and the optimizer):
 ```
-*** FALSE LAP — only 2/4 checkpoints cleared. Continuing... ***
+*** FALSE LAP — only 2/4 checkpoints cleared. Run invalid. ***
 ```
 
 When all checkpoints are cleared in order:
@@ -317,3 +376,45 @@ After a run, the best parameters are printed as **ready-to-paste code** and save
 
 6. Repeat from step 3 to refine further.
 ```
+
+---
+
+## Documentation
+
+Additional documentation files are provided for reference:
+
+| File | Purpose |
+|------|---------|
+| `CONSISTENCY_FIXES.md` | Technical details of optimizer/visualization consistency fixes |
+| `CLEANUP_SUMMARY.md` | Complete log of cleanup actions performed |
+| `FINAL_STRUCTURE.md` | Documentation of final project structure |
+| `docs/MULTI_TRACK_GUIDE.md` | Multi-track testing guide |
+| `docs/OPTIMIZATION_GUIDE.md` | Detailed optimization guide |
+| `docs/VISUALIZATION_GUIDE.md` | Visualization options guide |
+
+---
+
+## Project Maintenance
+
+To keep the project clean and prevent cache accumulation:
+
+```bash
+# Remove Python cache files
+find . -type d -name "__pycache__" -exec rm -rf {} +
+find . -type f -name "*.pyc" -delete
+
+# Verify project structure
+python3 verify_structure.py
+
+# Verify cleanup status
+python3 verify_cleanup.py
+```
+
+The `.gitignore` file prevents committing:
+- Python cache files (`__pycache__/`, `*.pyc`)
+- Generated test output images (`src/tests/*.png`)
+- Output JSON files (except `.gitkeep`)
+- Virtual environments and IDE files
+
+>>>>
+

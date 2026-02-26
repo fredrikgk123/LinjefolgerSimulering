@@ -5,19 +5,23 @@ Calculates key metrics from simulation data.
 """
 
 import numpy as np
+from config import DT
 
 
-def analyze_tracking_performance(err_log, dt=0.005):
+def analyze_tracking_performance(err_log, dt=None):
     """
     Analyze tracking performance from error log.
 
     Args:
         err_log: List or array of lateral errors over time
-        dt: Time step in seconds
+        dt: Time step in seconds (defaults to DT from config.py)
 
     Returns:
         dict with performance metrics
     """
+    if dt is None:
+        dt = DT
+
     errors = np.array(err_log)
     time = np.arange(len(errors)) * dt
 

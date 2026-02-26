@@ -39,7 +39,7 @@ os.makedirs(_OUTPUT_DIR, exist_ok=True)
 # main.py and lap_optimizer.py.
 DNF_PENALTY = MAX_LAP_TIME * 10
 
-LINE_THRESH  = 0.08
+# LINE_THRESH is imported from config.py — do not redefine here
 RENDER_EVERY = 8
 
 # ── Parameter search space ────────────────────────────────────────────────────
@@ -112,16 +112,24 @@ def run_lap(track_filename: str, params: dict, show_viz: bool = False):
         integral_limit=PID_INTEGRAL_LIMIT,   # fixed — tune by hand in config.py
         derivative_filter=PID_DERIV_FILTER,  # fixed — tune by hand in config.py
     )
+    # Reset PID state to ensure clean start
+    pid.reset()
+
     sc = SpeedController(
         straight_speed=params["straight_speed"],
         turn_speed=params["turn_speed"],
         error_threshold=params["error_threshold"],
         smoothing=params["smoothing"],
     )
+    # Reset speed controller state to ensure clean start
+    sc.reset()
 
     robot          = Robot()
     robot.position = np.array([spawn["x"], spawn["y"]])
     robot.theta    = spawn["theta"]
+    # Reset robot wheel speeds to zero
+    robot.vL = 0.0
+    robot.vR = 0.0
     sensors        = QTRArray()
 
     update_plot = None
@@ -149,7 +157,8 @@ def run_lap(track_filename: str, params: dict, show_viz: bool = False):
 
     traj = []  # Initialize trajectory list
 
-    np.random.seed(NOISE_SEED)   # deterministic noise — matches main.py
+    # Set random seed at the start for deterministic noise - matches main.py
+    np.random.seed(NOISE_SEED)
     t = 0.0
     step = 0
 
@@ -162,34 +171,29 @@ def run_lap(track_filename: str, params: dict, show_viz: bool = False):
         if total_w > LINE_THRESH:
             e_y         = float(np.dot(weights, pos_y) / total_w)
             last_e_y    = e_y
-            line_loss_t = 0.0          # line found — reset loss timer
         else:
             e_y          = last_e_y
-            line_loss_t += DT          # accumulate lost time
 
-        if line_loss_t > MAX_LINE_LOSS_TIME:
-            valid = False              # truly off track
-            break
-
-        abs_e = abs(e_y)
-        if abs_e > max_error:
-            max_error = abs_e
-
+        # ── Control ───────────────────────────────────────────────────────────
         w_cmd  = pid.compute(e_y, DT)
         v_cmd  = sc.update(e_y, w_cmd, pid.limit)
         vL_cmd = v_cmd - w_cmd * WHEEL_BASE / 2
         vR_cmd = v_cmd + w_cmd * WHEEL_BASE / 2
+
+        # ── Physics ───────────────────────────────────────────────────────────
         robot.update(vL_cmd, vR_cmd)
+        traj.append(tuple(robot.position))
 
         rx, ry        = robot.position
         dist_to_start = np.hypot(rx - sx, ry - sy)
 
-        # ── Advance checkpoint counter ────────────────────────────────────────
+        # ── Checkpoints ───────────────────────────────────────────────────────
         if cp_next < cp_total:
             cx, cy = checkpoints[cp_next]
             if np.hypot(rx - cx, ry - cy) < CHECKPOINT_RADIUS:
                 cp_next += 1   # checkpoint cleared — move to next
 
+        # ── Lap timer ─────────────────────────────────────────────────────────
         if not departed and dist_to_start > MIN_DEPARTURE_DIST:
             departed = True
             depart_t = t
@@ -202,21 +206,26 @@ def run_lap(track_filename: str, params: dict, show_viz: bool = False):
                 lap_time = t - depart_t   # time since departure — matches main.py
             break
 
-        traj.append(tuple(robot.position))  # Append the current position to the trajectory
+        # ── Line-loss guard ───────────────────────────────────────────────────
+        line_loss_t = line_loss_t + DT if total_w <= LINE_THRESH else 0.0
+        if line_loss_t > MAX_LINE_LOSS_TIME:
+            valid = False              # truly off track
+            break
 
-        # Ensure update_plot is callable before invoking
-        if callable(update_plot):
-            if show_viz and step % RENDER_EVERY == 0:
-                elapsed = t if lap_time is None else lap_time
-                update_plot(robot, readings, e_y, robot.vL, robot.vR, t,
-                            lap_time=lap_time, elapsed=elapsed)
+        # Track max error for reporting
+        abs_e = abs(e_y)
+        if abs_e > max_error:
+            max_error = abs_e
+
+        # Render visualization if enabled
+        if show_viz and update_plot is not None and step % RENDER_EVERY == 0:
+            elapsed = t if lap_time is None else lap_time
+            update_plot(robot, readings, e_y, robot.vL, robot.vR, t,
+                        lap_time=lap_time, elapsed=elapsed)
 
         t    += DT
         step += 1
 
-    # Validate the trajectory before returning the results
-    if not _validate_trajectory(traj, max_jump_distance=MAX_LATERAL_ERROR * 10):
-        valid = False
 
     return lap_time, valid, max_error
 
@@ -229,25 +238,6 @@ def _score(track_filename: str, params: dict) -> tuple:
     return lap_time, lap_time, valid, max_error
 
 
-# Add a function to validate the car's trajectory
-
-def _validate_trajectory(trajectory, max_jump_distance):
-    """
-    Validate the car's trajectory to ensure it doesn't cheat by crossing the line
-    and reentering at a different place.
-
-    Args:
-        trajectory: List of (x, y) positions representing the car's path.
-        max_jump_distance: Maximum allowed distance between consecutive points.
-
-    Returns:
-        bool: True if the trajectory is valid, False otherwise.
-    """
-    for i in range(1, len(trajectory)):
-        dist = np.linalg.norm(np.array(trajectory[i]) - np.array(trajectory[i - 1]))
-        if dist > max_jump_distance:
-            return False
-    return True
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────

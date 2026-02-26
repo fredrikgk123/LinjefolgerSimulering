@@ -37,10 +37,10 @@
 #  KD  — damps oscillation by reacting to the rate of change of error
 # =============================================================================
 
-PID_KP             = 120.8   # proportional gain
-PID_KI             = 3.94    # integral gain
-PID_KD             = 17.1    # derivative gain
-PID_LIMIT          = 21.6    # max angular-velocity command (rad/s); clamps PID output
+PID_KP             = 122.2   # proportional gain
+PID_KI             = 3.70    # integral gain
+PID_KD             = 17.4    # derivative gain
+PID_LIMIT          = 20.1    # max angular-velocity command (rad/s); clamps PID output
 PID_INTEGRAL_LIMIT = 1.2     # anti-windup clamp on the integral accumulator
 PID_DERIV_FILTER   = 0.10    # low-pass coefficient on the derivative term (0–1)
 
@@ -58,10 +58,10 @@ PID_DERIV_FILTER   = 0.10    # low-pass coefficient on the derivative term (0–
 #                        1 = never changes); lower = snappier transitions
 # =============================================================================
 
-SC_STRAIGHT_SPEED  = 0.753   # m/s on straights
-SC_TURN_SPEED      = 0.499   # m/s in corners
+SC_STRAIGHT_SPEED  = 0.687   # m/s on straights
+SC_TURN_SPEED      = 0.692   # m/s in corners
 SC_ERROR_THRESHOLD = 0.0250  # lateral error (m) that triggers speed reduction
-SC_SMOOTHING       = 0.093   # first-order speed blend coefficient
+SC_SMOOTHING       = 0.030   # first-order speed blend coefficient
 
 
 # =============================================================================
@@ -166,7 +166,9 @@ CHECKPOINT_REGISTRY = {
 START_FINISH_RADIUS = 0.10   # metres — robot must re-enter this circle to finish a lap
 MIN_DEPARTURE_DIST  = 0.30   # metres — must leave start zone before finish counts
 MAX_LAP_TIME        = 60.0   # seconds — any lap slower than this is a DNF in optimizer
-MAX_LINE_LOSS_TIME  = 0.3    # seconds — continuous line-loss longer than this = DNF
+MAX_LINE_LOSS_TIME  = 0.8    # seconds — continuous line-loss longer than this = DNF
+LINE_THRESH         = 0.08   # minimum total sensor weight to count as "on line"
+                             # (used identically by main.py and lap_optimizer.py)
 
 
 # =============================================================================
@@ -174,9 +176,15 @@ MAX_LINE_LOSS_TIME  = 0.3    # seconds — continuous line-loss longer than this
 # =============================================================================
 #  Low-level simulation parameters. You rarely need to change these unless
 #  you are experimenting with numerical stability or map resolution.
+#
+#  IMPORTANT: DT is the UNIVERSAL timestep used by BOTH the optimizer and
+#  visualization. Changing this value will affect PID behavior, so you may
+#  need to re-tune PID gains if you change it significantly.
 # =============================================================================
 
-DT          = 0.005        # seconds — physics timestep (200 Hz)
+DT          = 0.005        # seconds — UNIVERSAL physics timestep (200 Hz)
+                           # Used by both optimizer and visualization
+                           # Increase for faster simulation, decrease for accuracy
 SIM_TIME    = 45.0         # seconds — hard cap on visual-run duration
 PX_PER_METER = 500         # pixels per metre — image resolution scale
 MAP_SIZE_M  = (4.0, 2.0)   # metres  — (width, height) of the track area

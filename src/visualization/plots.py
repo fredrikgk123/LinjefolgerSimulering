@@ -1,7 +1,19 @@
 # visualization/plots.py
 
 import matplotlib
-matplotlib.use("TkAgg")
+import os
+# Only set backend if not already configured
+if 'MPLBACKEND' in os.environ:
+    # Use the environment variable if set
+    pass
+else:
+    # Default to TkAgg for interactive use, but allow it to fall back
+    try:
+        matplotlib.use("TkAgg")
+    except Exception:
+        # Fall back to a non-interactive backend if TkAgg is unavailable
+        pass
+
 import matplotlib.pyplot as plt
 import numpy as np
 from config import MAP_SIZE_M, QTR_CHANNELS, QTR_SPACING_M, QTR_SENSOR_OFFSET_M, DT, CHECKPOINT_RADIUS

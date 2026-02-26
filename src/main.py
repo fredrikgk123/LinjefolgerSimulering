@@ -183,7 +183,9 @@ def main():
         t    += DT
         step += 1
 
-    # Real-time visualization is complete - no summary popup needed
+    # Keep the visualization window open until user closes it manually
+    import matplotlib.pyplot as plt
+    plt.show()
 
 
 if __name__ == "__main__":

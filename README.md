@@ -13,13 +13,13 @@ pip install numpy matplotlib pillow
 
 ---
 
-## Structure
+## Project Structure
 
 ```
 Simulering/
 ├── src/
+│   ├── config.py              ← ★ ALL parameters live here — start here
 │   ├── main.py                ← Entry point (visual run)
-│   ├── config.py              ← ★ Single source of truth for ALL parameters
 │   ├── lap_optimizer.py       ← Lap-time optimizer (CMA-ES / random / grid)
 │   ├── performance_metrics.py ← RMS / settling time calculations
 │   ├── preview_track.py       ← Plot track with start/finish zone for inspection
@@ -48,7 +48,7 @@ Simulering/
 
 ---
 
-## Run Simulation
+## Quick Start
 
 ```bash
 cd src
@@ -60,107 +60,125 @@ python3 main.py --track ../assets/my_track.png    # Any image you add
 
 > **Adding your own track:** drop any top-down PNG/JPG into `assets/` and pass it with `--track`.  
 > Image requirements: **dark line on a light background, top-down view**.  
-> Add a spawn position and checkpoints for it in `config.py` (see below).
+> Add a spawn position and checkpoints for it in `config.py` (see §SPAWN and §CHECKPOINTS below).
 
 ---
 
-## Configuration — one file to rule them all
+## Configuration — `src/config.py`
 
-**Everything you would ever want to tune lives in `src/config.py`.**  
-Both the visual run (`main.py`) and the lap-time optimizer (`lap_optimizer.py`) import from it,
-so changing a value there instantly affects both programs — no need to edit two files.
+**Every tuneable value lives in `src/config.py`.**  
+Both `main.py` and `lap_optimizer.py` import from it — change a value once and both programs pick it up immediately.
 
-### PID + Speed Controller
+The file is divided into clearly labelled sections with a **quick-find index** at the top.  
+Search for the section tag (e.g. `§PID`) to jump straight to what you need.
+
+| # | Section tag | What you can change |
+|---|-------------|---------------------|
+| 1 | `§PID` | KP / KI / KD gains, output clamp, anti-windup, derivative filter |
+| 2 | `§SPEED` | Straight speed, turn speed, error threshold, smoothing |
+| 3 | `§HARDWARE` | Wheel base, max wheel speed, motor time-constant, mass, friction |
+| 4 | `§SENSOR` | Channel count, pitch, mounting offset, noise, ADC bits, random seed |
+| 5 | `§SPAWN` | Starting x / y / heading for each track image |
+| 6 | `§CHECKPOINTS` | Checkpoint coordinates and radius per track |
+| 7 | `§LAP` | Start/finish radius, departure distance, DNF time limits |
+| 8 | `§SIM` | Physics timestep, simulation duration cap, map resolution |
+
+---
+
+### §PID — PID Controller
+
+Controls how the robot steers to stay on the line.  
+The optimizer uses these as its **initial guess** — paste better values from the optimizer output here to build on previous results.
 
 ```python
-# src/config.py
+# src/config.py  →  §PID
 
-PID_KP               = 120.0   # proportional gain
-PID_KI               = 4.0     # integral gain
-PID_KD               = 18.0    # derivative gain
-PID_LIMIT            = 22.0    # max angular-velocity command (rad/s)
-PID_INTEGRAL_LIMIT   = 1.2     # anti-windup clamp
-PID_DERIV_FILTER     = 0.10    # low-pass on derivative term
-
-SC_STRAIGHT_SPEED    = 0.91    # m/s on straights
-SC_TURN_SPEED        = 0.70    # m/s in corners
-SC_ERROR_THRESHOLD   = 0.007   # lateral error (m) that triggers speed reduction
-SC_SMOOTHING         = 0.12    # first-order blend between speed states
+PID_KP             = 120.8   # proportional gain — aggressiveness of steering response
+PID_KI             = 3.94    # integral gain     — corrects persistent steady-state error
+PID_KD             = 17.1    # derivative gain   — damps oscillation
+PID_LIMIT          = 21.6    # max angular-velocity command (rad/s)
+PID_INTEGRAL_LIMIT = 1.2     # anti-windup clamp on the integral accumulator
+PID_DERIV_FILTER   = 0.10    # low-pass coefficient on derivative term (0–1)
 ```
 
-The optimizer uses these values as its **initial guess** — so if you paste a new best result
-from the optimizer output back here, the next run starts from that better point.
+---
 
-### Spawn positions
+### §SPEED — Speed Controller
+
+Slows the robot in corners and speeds it up on straights.
 
 ```python
+# src/config.py  →  §SPEED
+
+SC_STRAIGHT_SPEED  = 0.753   # m/s — target speed on straights
+SC_TURN_SPEED      = 0.499   # m/s — target speed in corners
+SC_ERROR_THRESHOLD = 0.0250  # m   — lateral error above which "corner mode" kicks in
+SC_SMOOTHING       = 0.093   # blending coefficient (lower = snappier transitions)
+```
+
+---
+
+### §HARDWARE — Robot Hardware / Physical Properties
+
+Match these to your real robot's physical specifications.
+
+```python
+# src/config.py  →  §HARDWARE
+
+WHEEL_BASE        = 0.12   # metres — distance between the two drive wheels
+MAX_WHEEL_SPEED   = 1.0    # m/s   — motor hardware speed limit
+MOTOR_TAU         = 0.05   # s     — motor time-constant (50 ms)
+ROBOT_MASS        = 0.9    # kg
+MU_SLIDE          = 1.14   # tyre sliding friction coefficient
+MAX_LATERAL_ERROR = 0.05   # m     — error threshold for "off-track" detection
+```
+
+---
+
+### §SENSOR — QTR-HD-25RC Sensor Array
+
+Simulation of the Pololu QTR-HD-25RC reflectance sensor.
+
+```python
+# src/config.py  →  §SENSOR
+
+QTR_CHANNELS        = 25      # number of sensor channels
+QTR_SPACING_M       = 0.004   # m — 4 mm pitch; total array span ≈ ±48 mm
+QTR_SENSOR_OFFSET_M = 0.03    # m — sensor mounted 3 cm ahead of centre of mass
+QTR_NOISE_STD       = 0.01    # Gaussian noise standard deviation on readings
+QTR_ADC_BITS        = 12      # ADC resolution (12-bit = 0–4095 counts)
+NOISE_SEED          = 42      # fixed seed → deterministic runs; set None for random
+```
+
+---
+
+### §SPAWN — Spawn Positions Per Track
+
+The robot's starting position and heading for each track.
+
+```python
+# src/config.py  →  §SPAWN
+
 SPAWN_REGISTRY = {
     "bane_fase2.png": {"x": 2.00, "y": 0.14, "theta":  0.00},
     "suzuka.png":     {"x": 0.55, "y": 0.68, "theta": -0.40},
-    # "my_track.png": {"x": 1.00, "y": 0.50, "theta":  0.00},  # add yours here
+    # "my_track.png": {"x": 1.00, "y": 0.50, "theta":  0.00},  # ← add yours here
 }
 ```
 
-`x`/`y` are metres from the bottom-left corner, `theta` in radians (`0` = right, `π/2` = up).  
-This one entry is used automatically by `main.py`, `lap_optimizer.py` and `preview_track.py`.
-
-### Lap-timer settings
-
-```python
-START_FINISH_RADIUS = 0.10   # metres — robot must re-enter this circle to finish
-MIN_DEPARTURE_DIST  = 0.30   # metres — must leave start zone before finish counts
-MAX_LAP_TIME        = 60.0   # seconds — DNF cutoff in optimizer
-MAX_LINE_LOSS_TIME  = 1.0    # seconds of continuous line loss before DNF
-```
-
-### Simulation settings
-
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `SIM_TIME` | 45.0 s | Visual-run duration cap |
-| `DT` | 0.005 s | Physics timestep |
-| `MAP_SIZE_M` | (4.0, 2.0) | Track area in metres |
-| `QTR_CHANNELS` | 25 | Sensor channels |
-| `MAX_WHEEL_SPEED` | 1.0 m/s | Motor speed limit |
-| `WHEEL_BASE` | 0.12 m | Distance between wheels |
-| `NOISE_SEED` | 42 | Fixed seed → deterministic runs. Set `None` for random noise. |
+`x`/`y` are metres from the **bottom-left** corner of the image.  
+`theta` is in radians (`0` = pointing right, `π/2 ≈ 1.57` = pointing up).
 
 ---
 
-## Checkpoint System
+### §CHECKPOINTS — Checkpoint Positions Per Track
 
-Checkpoints prevent the optimizer (and the visual run) from recording a valid lap if the robot
-cuts across the track or teleports to the finish line. The robot must pass through **every
-checkpoint in order** before the finish line is counted.
-
-### Visual cues
-
-In the live view (`main.py`) each checkpoint is drawn as a **circle** matching `CHECKPOINT_RADIUS`:
-
-| Colour | Meaning |
-|--------|---------|
-| 🟡 Yellow | Checkpoint not yet reached |
-| 🟢 Green | Checkpoint cleared |
-
-The circle label shows the checkpoint number. In the terminal you will see:
-```
-Checkpoint system active: 4 checkpoints must be cleared in order.
-  Checkpoint 1/4 cleared at t=3.21s
-  Checkpoint 2/4 cleared at t=7.84s
-  ...
-*** LAP COMPLETE — time: 14.237 s ***
-```
-
-If the robot reaches the finish line without clearing all checkpoints:
-```
-*** FALSE LAP — only 2/4 checkpoints cleared. Continuing... ***
-```
-
-### Adding / tuning checkpoints
-
-Checkpoints are defined in `src/config.py`:
+Checkpoints ensure the robot completes the full circuit in order (no shortcuts).  
+The robot must pass within `CHECKPOINT_RADIUS` metres of each point, in order, before a lap is counted.
 
 ```python
+# src/config.py  →  §CHECKPOINTS
+
 CHECKPOINT_RADIUS = 0.10   # metres — how close the robot must get to clear a checkpoint
 
 CHECKPOINT_REGISTRY = {
@@ -171,56 +189,99 @@ CHECKPOINT_REGISTRY = {
         (0.20, 1.70),   # 100% — top left corner
     ],
     "suzuka.png": [
-        (1.80, 0.68),   # after the first chicane
-        (2.80, 1.20),   # mid-sector 2
-        (1.50, 1.60),   # top of the circuit
-        (0.55, 1.20),   # return section
+        (1.87, 0.68),   # 25 % — after the first chicane
+        (3.87, 1.30),   # 50 % — mid-sector 2
+        (1.95, 1.45),   # 75 % — top of the circuit
+        (0.15, 1.05),   # 100% — return section
     ],
-    # "my_track.png": [(x1,y1), (x2,y2), ...],
+    # "my_track.png": [(x1, y1), (x2, y2), (x3, y3), (x4, y4)],
 }
 ```
 
-**Tip — finding good positions:**  
-Run `preview_track.py` or `main.py` and watch the robot's path on the live map. Pick four
-evenly-spaced points around the circuit (roughly 25 %, 50 %, 75 % and 100 % of the lap).
-The yellow circles are drawn at those coordinates so you can immediately see if they sit on
-the track. Increase `CHECKPOINT_RADIUS` if a checkpoint is never cleared on a valid run.
+**Finding good checkpoint positions:**  
+Run `main.py` and watch the live map. Pick four evenly-spaced waypoints around the circuit.  
+Yellow circles show each checkpoint — adjust coordinates until they sit on the track line.  
+Increase `CHECKPOINT_RADIUS` if a checkpoint is never cleared on a valid run.  
+Set a track's list to `[]` to disable checkpoints for it entirely.
 
-To **disable checkpoints** for a track, set an empty list:
+**Visual cues in the live view:**
+
+| Colour | Meaning |
+|--------|---------|
+| 🟡 Yellow | Checkpoint not yet reached |
+| 🟢 Green | Checkpoint cleared |
+
+---
+
+### §LAP — Lap-Timer / DNF Rules
+
 ```python
-"my_track.png": [],
+# src/config.py  →  §LAP
+
+START_FINISH_RADIUS = 0.10   # m   — robot must re-enter this circle to finish a lap
+MIN_DEPARTURE_DIST  = 0.30   # m   — must leave start zone before finish counts
+MAX_LAP_TIME        = 60.0   # s   — any lap slower than this = DNF in optimizer
+MAX_LINE_LOSS_TIME  = 0.3    # s   — continuous line-loss longer than this = DNF
+```
+
+---
+
+### §SIM — Simulation Settings
+
+Low-level settings you rarely need to touch.
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `DT` | `0.005` s | Physics timestep (200 Hz) |
+| `SIM_TIME` | `45.0` s | Hard cap on visual-run duration |
+| `PX_PER_METER` | `500` | Image resolution scale |
+| `MAP_SIZE_M` | `(4.0, 2.0)` | Track area in metres (width × height) |
+
+---
+
+## Checkpoint System
+
+If the robot reaches the finish line without clearing all checkpoints:
+```
+*** FALSE LAP — only 2/4 checkpoints cleared. Continuing... ***
+```
+
+When all checkpoints are cleared in order:
+```
+  Checkpoint 1/4 cleared at t=3.21s
+  Checkpoint 2/4 cleared at t=7.84s
+  ...
+*** LAP COMPLETE — time: 14.237 s ***
 ```
 
 ---
 
 ## Preview Track
 
-Plots the track image with spawn point, start/finish zone, departure circle and all checkpoint
-circles overlaid — useful for verifying positions before running the optimizer.
+Plots the track image with spawn point, start/finish zone, departure circle and checkpoint circles overlaid.
 
 ```bash
 cd src
 
-python3 preview_track.py  --track bane_fase2.png                           # bane_fase2 (default)
-python3 preview_track.py --track suzuka.png
+python3 preview_track.py --track ../assets/bane_fase2.png  # default track
+python3 preview_track.py --track ../assets/suzuka.png
 ```
 
-The preview is also saved to `output/track_preview.png`.
+Output is also saved to `output/track_preview.png`.
 
 ---
 
-## Run Lap-Time Optimizer
+## Lap-Time Optimizer
 
-Optimizes PID + SpeedController to **minimize lap time** using CMA-ES by default.  
-The optimizer starts from the values defined in `config.py` and the checkpoint system
-runs inside every evaluation, so cheating routes are automatically rejected.
+Optimizes PID + Speed Controller to **minimize lap time** using CMA-ES.  
+Starts from the values in `config.py` (§PID and §SPEED) and respects the checkpoint system.
 
 ```bash
 cd src
 
 python3 lap_optimizer.py                                           # CMA-ES, bane_fase2, 30 gen
-python3 lap_optimizer.py --track bane_fase2.png --iterations 60   # more generations
-python3 lap_optimizer.py --track suzuka.png                        # different track
+python3 lap_optimizer.py --track ../assets/bane_fase2.png --iterations 60
+python3 lap_optimizer.py --track ../assets/suzuka.png
 python3 lap_optimizer.py --mode random --iterations 50             # fast random baseline
 python3 lap_optimizer.py --mode grid                               # exhaustive (slow)
 ```
@@ -229,30 +290,30 @@ python3 lap_optimizer.py --mode grid                               # exhaustive 
 |------|-----------|-------|
 | `cmaes` | CMA-ES evolution strategy | **Recommended** — adapts search direction automatically |
 | `random` | Uniform random sampling | Fast baseline |
-| `grid` | Exhaustive grid | Very slow — use only for small spaces |
+| `grid` | Exhaustive grid | Very slow — use only for small parameter spaces |
 
-After a run, the best parameters are printed as **ready-to-paste code** and saved to
-`output/lap_<track>_<timestamp>.json`. Paste the values into `config.py` so that the next
-optimizer run (and `main.py`) both start from the improved baseline.
+After a run, the best parameters are printed as **ready-to-paste code** and saved to  
+`output/lap_<track>_<timestamp>.json`. Paste them into `config.py` (§PID / §SPEED) so the next run starts from the improved baseline.
 
 ---
 
-## Workflow — typical tuning loop
+## Typical Tuning Workflow
 
 ```
-1. Run preview_track.py → visually verify spawn point and checkpoint circles
-                           sit on the track. Adjust config.py if needed.
+1. Run preview_track.py
+     → Verify spawn point and checkpoint circles sit on the track.
+     → Adjust §SPAWN and §CHECKPOINTS in config.py if needed.
 
-2. Run main.py → watch the live view and confirm all checkpoints turn green
-                  on a clean lap.
+2. Run main.py
+     → Watch the live view and confirm all checkpoints turn green on a clean lap.
 
-3. Run lap_optimizer.py → let CMA-ES run for 30–60 generations.
+3. Run lap_optimizer.py (30–60 generations)
+     → CMA-ES searches for faster PID + speed settings.
 
-4. Copy the "BEST" parameters from the console output into config.py
-   (PID_KP, PID_KI, … SC_STRAIGHT_SPEED, …).
+4. Copy the "BEST" block from the console into config.py (§PID and §SPEED).
 
-5. Run main.py again → visually verify the lap looks correct and all
-   checkpoints go green in the right order.
+5. Run main.py again
+     → Visually verify the lap is clean and all checkpoints go green in order.
 
 6. Repeat from step 3 to refine further.
 ```

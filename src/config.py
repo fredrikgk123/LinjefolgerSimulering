@@ -1,191 +1,102 @@
-# =============================================================================
-#  config.py  —  SINGLE SOURCE OF TRUTH FOR ALL PARAMETERS
-# =============================================================================
-#  Every parameter the robot, sensor, PID controller, speed controller,
-#  optimizer, and track system use lives here.
-#
-#  Both  main.py  and  lap_optimizer.py  import from this file, so any
-#  value you change here is instantly reflected in both programs — you
-#  never have to edit two files.
-#
-#  QUICK-FIND INDEX
-#  ─────────────────────────────────────────────────────────────────────
-#  Section                         | Jump to tag
-#  ─────────────────────────────────────────────────────────────────────
-#  1. PID Controller               | §PID
-#  2. Speed Controller             | §SPEED
-#  3. Robot Hardware               | §HARDWARE
-#  4. Sensor (QTR-HD-25RC)         | §SENSOR
-#  5. Spawn Positions              | §SPAWN
-#  6. Checkpoints                  | §CHECKPOINTS
-#  7. Lap-Timer / DNF Rules        | §LAP
-#  8. Simulation Settings          | §SIM
-#  ─────────────────────────────────────────────────────────────────────
-# =============================================================================
+# config.py — single source of truth for all simulation parameters.
+# Both main.py and lap_optimizer.py import from here.
 
 
-# =============================================================================
-#  §PID — PID CONTROLLER
-# =============================================================================
-#  These are the gains for the line-following PID loop.
-#  The optimizer in lap_optimizer.py uses them as its initial guess, so
-#  paste improved values from the optimizer output back here to make the
-#  next run start from the better baseline.
-#
-#  KP  — how aggressively the robot reacts to current error
-#  KI  — corrects accumulated (integral) error; keep small to avoid windup
-#  KD  — damps oscillation by reacting to the rate of change of error
-# =============================================================================
+# ── PID ───────────────────────────────────────────────────────────────────────
+# PID receives normalised error: e_norm = e_y / QTR_HALF_SPAN  (range ±1).
+# Gain conversion from physical robot:
+#   SCALE = 4000 counts × (2 × 2.20/255 / 0.165) = 418.28
+#   Kp_sim = Kp_phys × SCALE,  Kp_phys = Kp_sim / 418.28
+QTR_HALF_SPAN = ((9 - 1) / 2) * 0.004   # 0.016 m — sensor array half-span
 
-PID_KP             = 122.0   # proportional gain
-PID_KI             = 4.07    # integral gain
-PID_KD             = 19.3    # derivative gain
-PID_LIMIT          = 18.0    # max angular-velocity command (rad/s); clamps PID output
-PID_INTEGRAL_LIMIT = 1.2     # anti-windup clamp on the integral accumulator
-PID_DERIV_FILTER   = 0.10    # low-pass coefficient on the derivative term (0–1)
+PID_KP    =  11.7   # rad/s per e_norm  (Kp_phys = 0.028)
+PID_KI    =   0.042 # rad/(e_norm·s)    (Ki_phys = 0.0001)
+PID_KD    =  50.1   # rad·s/e_norm      (Kd_phys = 0.1198)
+PID_LIMIT =  23.5   # rad/s             (MAX_TURN = 225 PWM)
+
+PID_INTEGRAL_LIMIT = 0.075  # norm·s — matched to physical: 300 counts / 4000
+PID_DERIV_FILTER   = 0.30   # LP filter α on derivative term
 
 
-# =============================================================================
-#  §SPEED — SPEED CONTROLLER
-# =============================================================================
-#  The speed controller slows the robot in corners and speeds it up on
-#  straights, based on the current lateral error.
-#
-#  SC_STRAIGHT_SPEED   — target wheel speed when the track is straight
-#  SC_TURN_SPEED       — target wheel speed when cornering
-#  SC_ERROR_THRESHOLD  — lateral error (m) above which "corner" mode kicks in
-#  SC_SMOOTHING        — blending coefficient between speed states (0 = instant,
-#                        1 = never changes); lower = snappier transitions
-# =============================================================================
-
-SC_STRAIGHT_SPEED  = 1.097 # m/s on straights
-SC_TURN_SPEED      = 0.960   # m/s in corners
-SC_ERROR_THRESHOLD = 0.0020  # lateral error (m) that triggers speed reduction
-SC_SMOOTHING       = 0.300   # first-order speed blend coefficient
+# ── Speed controller ──────────────────────────────────────────────────────────
+# SpeedController also receives e_norm (±1), not raw metres.
+# turn_speed MUST be < straight_speed — robot slows in corners.
+SC_STRAIGHT_SPEED        = 0.86   # m/s
+SC_TURN_SPEED            = 0.50   # m/s — must be < straight_speed
+SC_ERROR_THRESHOLD       = 0.25   # normalised error (0–1) that triggers TURNING mode
+SC_SMOOTHING             = 0.08   # LP weight on new target speed (lower = smoother)
+SC_TURN_FACTOR_THRESHOLD = 0.50   # fraction of pid_limit below which STRAIGHT is allowed
+SC_MIN_SPEED_FACTOR      = 0.20   # floor speed multiplier at max steering
 
 
-# =============================================================================
-#  §HARDWARE — ROBOT HARDWARE / PHYSICAL PROPERTIES
-# =============================================================================
-#  Change these to match your real robot's specifications.
-# =============================================================================
+# ── Hardware ──────────────────────────────────────────────────────────────────
+WHEEL_BASE      = 0.165   # m
+WHEEL_RADIUS    = 0.017   # m
+MAX_WHEEL_SPEED = 2.20    # m/s — no-load ceiling at 7.4V
+MOTOR_TAU       = 0.060   # s  — first-order motor time constant
+MOTOR_DEADZONE  = 0.33    # m/s — minimum speed that produces motion
+ROBOT_MASS      = 0.245   # kg
 
-WHEEL_BASE      = 0.12   # metres — distance between the two drive wheels
-MAX_WHEEL_SPEED = 1.0    # m/s   — motor speed limit (hardware maximum)
+COM_OFFSET_FROM_AXLE = 0.030   # m — CoM is 30 mm ahead of drive axle
+ROBOT_MOI            = 0.00082 # kg·m² — yaw moment of inertia
+WHEEL_LOAD_FRACTION  = 0.69    # fraction of weight on drive wheels
+MU_SLIDE             = 1.14    # kinetic friction coefficient (sponge-rubber on vinyl)
 
-MOTOR_TAU       = 0.05   # seconds — motor time-constant (50 ms = faster response)
-
-ROBOT_MASS      = 0.9    # kg
-MU_SLIDE        = 1.14   # sliding (kinetic) friction coefficient of the tyres
-
-MAX_LATERAL_ERROR = 0.05  # metres — maximum lateral error before considered off-track
-
-
-# =============================================================================
-#  §SENSOR — QTR-HD-25RC SENSOR ARRAY
-# =============================================================================
-#  Simulation of the Pololu QTR-HD-25RC reflectance sensor array.
-#  Adjust if you swap to a different sensor or change its mounting position.
-# =============================================================================
-
-QTR_CHANNELS       = 25      # number of sensor channels
-QTR_SPACING_M      = 0.004   # metres — 4 mm pitch; total array span ≈ ±48 mm
-QTR_SENSOR_OFFSET_M = 0.03   # metres — sensor is 3 cm ahead of the centre of mass
-QTR_NOISE_STD      = 0.01    # standard deviation of Gaussian noise on readings
-QTR_ADC_BITS       = 12      # ADC resolution (12-bit = 0–4095 counts)
-
-# Fixed random seed — keeps every simulation run deterministic so results are
-# reproducible. Change to None to get different noise on every run.
-NOISE_SEED = 42
+MAX_LATERAL_ERROR = 0.05  # m — used in reporting only
 
 
-# =============================================================================
-#  §SPAWN — SPAWN POSITIONS PER TRACK
-# =============================================================================
-#  The robot's starting position and heading for each track image.
-#  Used by: main.py, lap_optimizer.py, preview_track.py
-#
-#  x, y  : world coordinates in metres (origin = bottom-left corner of image)
-#  theta : heading in radians  (0 = pointing right,  π/2 ≈ 1.57 = pointing up)
-#
-#  To add a new track, copy one of the existing entries and adjust the values.
-# =============================================================================
+# ── Sensor ────────────────────────────────────────────────────────────────────
+# QTRX-HD-25RC array, 9 of 25 channels wired, RC mode, 4 mm pitch.
+QTR_CHANNELS        = 9
+QTR_SPACING_M       = 0.004   # m
+QTR_SENSOR_OFFSET_M = 0.097   # m — sensor bar is 97 mm ahead of CoM
+QTR_NOISE_STD       = 0.005   # Gaussian σ on normalised readings
+QTR_ADC_BITS        = 10      # effective resolution (0–1000 per channel)
 
+NOISE_SEED = 42               # fixed seed for reproducible runs
+
+
+# ── Spawn positions ───────────────────────────────────────────────────────────
+# x, y in metres (origin = bottom-left), theta in radians (0 = right, π/2 = up)
 SPAWN_REGISTRY = {
     "bane_fase2.png": {"x": 2.00, "y": 0.14, "theta":  0.00},
     "suzuka.png":     {"x": 0.55, "y": 0.68, "theta": -0.40},
-    # "my_track.png": {"x": 1.00, "y": 0.50, "theta":  0.00},  # ← add yours here
 }
 
 
-# =============================================================================
-#  §CHECKPOINTS — CHECKPOINT POSITIONS PER TRACK
-# =============================================================================
-#  Checkpoints force the robot to complete the whole circuit in order.
-#  The robot must pass within CHECKPOINT_RADIUS metres of each (x, y) point
-#  IN ORDER before a lap completion is counted. This stops the optimizer from
-#  finding "cheating" shortcuts.
-#
-#  How to find good positions:
-#    1. Run  main.py  and watch the robot's path on the live map.
-#    2. Pick four evenly-spaced waypoints (roughly 25 %, 50 %, 75 %, 100 %).
-#    3. Yellow circles in the live view show where each checkpoint sits —
-#       adjust x/y until they clearly lie on the track line.
-#
-#  To DISABLE checkpoints for a track, set its list to [].
-# =============================================================================
-
-CHECKPOINT_RADIUS = 0.10   # metres — how close the robot must get to clear a checkpoint
+# ── Checkpoints ───────────────────────────────────────────────────────────────
+# Robot must pass within CHECKPOINT_RADIUS of each point IN ORDER before a
+# lap completion is accepted. Set list to [] to disable for a track.
+CHECKPOINT_RADIUS = 0.10   # m
 
 CHECKPOINT_REGISTRY = {
-    # --- bane_fase2.png ---
     "bane_fase2.png": [
-        (2.80, 0.14),   # 25 % — far end of bottom straight
-        (3.80, 1.70),   # 50 % — top right corner
-        (2.00, 0.50),   # 75 % — bottom of box
-        (0.20, 1.70),   # 100% — top left corner
+        (2.80, 0.14),
+        (3.80, 1.70),
+        (2.00, 0.50),
+        (0.20, 1.70),
     ],
-    # --- suzuka.png ---
     "suzuka.png": [
-        (1.87, 0.68),   # 25 % — after the first chicane
-        (3.87, 1.30),   # 50 % — mid-sector 2
-        (1.95, 1.45),   # 75 % — top of the circuit
-        (0.15, 1.05),   # 100% — return section
+        (1.87, 0.68),
+        (3.87, 1.30),
+        (1.95, 1.45),
+        (0.15, 1.05),
     ],
-    # "my_track.png": [(x1, y1), (x2, y2), (x3, y3), (x4, y4)],  # ← add yours here
 }
 
 
-# =============================================================================
-#  §LAP — LAP-TIMER / DNF RULES
-# =============================================================================
-#  These thresholds control when a lap is counted as valid or as a DNF (Did
-#  Not Finish). Shared between main.py and lap_optimizer.py.
-# =============================================================================
-
-START_FINISH_RADIUS = 0.10   # metres — robot must re-enter this circle to finish a lap
-MIN_DEPARTURE_DIST  = 0.30   # metres — must leave start zone before finish counts
-MAX_LAP_TIME        = 45.0   # seconds — any lap slower than this is a DNF (matches SIM_TIME)
-MAX_LINE_LOSS_TIME  = 0.3    # seconds — continuous line-loss longer than this = DNF
-LINE_THRESH         = 0.08   # minimum total sensor weight to count as "on line"
-                             # (used identically by main.py and lap_optimizer.py)
+# ── Lap rules ─────────────────────────────────────────────────────────────────
+START_FINISH_RADIUS = 0.10   # m — re-entry radius to finish a lap
+MIN_DEPARTURE_DIST  = 0.30   # m — must leave start zone before finish counts
+MAX_LAP_TIME        = 45.0   # s — hard DNF limit
+MIN_LAP_TIME        = 5.0    # s — faster returns are ignored (false positives)
+MAX_LINE_LOSS_TIME  = 0.5    # s — continuous line loss before DNF
+LINE_THRESH         = 0.03   # minimum sensor weight to count as on-line
 
 
-# =============================================================================
-#  §SIM — SIMULATION SETTINGS
-# =============================================================================
-#  Low-level simulation parameters. You rarely need to change these unless
-#  you are experimenting with numerical stability or map resolution.
-#
-#  IMPORTANT: DT is the UNIVERSAL timestep used by BOTH the optimizer and
-#  visualization. Changing this value will affect PID behavior, so you may
-#  need to re-tune PID gains if you change it significantly.
-# =============================================================================
-
-DT          = 0.005        # seconds — UNIVERSAL physics timestep (200 Hz)
-                           # Used by both optimizer and visualization
-                           # Increase for faster simulation, decrease for accuracy
-SIM_TIME    = 45.0         # seconds — hard cap on visual-run duration
-PX_PER_METER = 500         # pixels per metre — image resolution scale
-MAP_SIZE_M  = (4.0, 2.0)   # metres  — (width, height) of the track area
-
+# ── Simulation ────────────────────────────────────────────────────────────────
+# DT matched to physical ESP32 loop: 5× RC reads (~2.5 ms each) + PID ≈ 13 ms
+DT           = 0.0125        # s — universal timestep (~80 Hz)
+SIM_TIME     = 45.0          # s — hard cap on visual run
+PX_PER_METER = 500           # pixels per metre
+MAP_SIZE_M   = (4.0, 2.0)    # m — (width, height) of track area

@@ -1,17 +1,63 @@
-# Line-Following Robot Simulation
+# Line-Following Robot Simulator
 
-![Simulation Output](assets/for_readme/demo.gif)
-
-Top-down 2D simulator for the physical ESP32 line-following robot.
-Matches the physical robot's sensor array, motor dynamics, and PID logic so that gains tuned here transfer directly to real hardware.
+A simple, self-contained Python simulation of a differential-drive line-following robot with a live matplotlib dashboard. Modelled on the real physical robot hardware listed below.
 
 ---
 
-## Requirements
+## Hardware
 
-```bash
-pip install numpy matplotlib pillow
+| Component | Part |
+|---|---|
+| Microcontroller | ESP32 |
+| Sensor array | Pololu QTRX-HD-25RC (25 sensors, central 8 wired, 4 mm pitch) |
+| Motors | Pololu Micro Metal 6V HP 30:1 |
+| Battery | 7.4 V LiPo (2S) |
+| Wheels | 34 mm diameter (r = 17 mm), directly on motor shafts |
+
+### Physical measurements
+
+| Parameter | Value | How measured |
+|---|---|---|
+| Total mass | **270 g** | Scale |
+| Wheel base | **180 mm** | Centre-to-centre |
+| Axle to sensor bar | **160 mm** | Ruler |
+| CoM ahead of axle | **45 mm** | Estimated from layout |
+| Chassis height | **< 8 mm** | Ruler (very flat) |
+| CoM height | **≈ 4 mm** | Half chassis height |
+| Friction coefficient (μ) | **1.12** | Tilt-plane method |
+| Wheel contact patch width | **22 mm** | Ruler |
+| Sensor bar height off floor | **5 mm** | Rests on screw heads at front |
+
+### Chassis geometry (inverted-T)
+
+The chassis is an inverted-T shape: a wide crossbar at the rear holding the drive wheels (180 mm apart), and a narrow spine extending 160 mm forward to the sensor bar. The robot rests on the two drive wheels at the rear and the sensor-bar screw heads at the front — there is no castor.
+
 ```
+  sensor bar
+  [========]   ← 160 mm from axle, 5 mm off floor
+       |
+       |  spine (≈40 mm wide)
+       |
+  [==axle==]   ← drive wheels, 180 mm apart
+  L        R
+```
+
+### Derived physics values
+
+| Parameter | Calculation | Result |
+|---|---|---|
+| No-load wheel speed at 7.4 V | 1233 RPM × 2π/60 × 0.017 m | **2.19 m/s** |
+| Sensor offset from CoM | 160 mm − 45 mm | **115 mm** |
+| Sensor half-span | (8 − 1) / 2 × 4 mm | **14 mm** |
+| Max angular rate | 2 × 2.20 / 0.180 m | **24.4 rad/s** |
+| Drive wheel normal force at rest | 270g × 9.81 × (115/160) | **1.90 N  (194 g)** |
+| Yaw moment of inertia (Iz) | Inverted-T two-slab model | **854 g·m²** |
+| Yaw time constant (TAU_YAW) | Iz / (m × (B/2)²) | **390 ms** |
+| Weight on drive wheels at rest | 115 / 160 | **71.9 %** |
+| Lateral v_max at ω = 8 rad/s | μ × F_normal / (m × ω) | **0.93 m/s** ← grip-limited |
+| Target avg speed (8 s lap, ~10 m) | 10 m / 8 s | **1.25 m/s** |
+
+> **Key insight:** The CoM being 45 mm ahead of the axle means the drive wheels carry only ~72 % of the weight at rest, and *less* under hard acceleration. At ω ≥ 8 rad/s (moderate cornering) the lateral grip cap drops below 1.0 m/s — this is the primary performance constraint and why PID tuning is sensitive.
 
 ---
 
@@ -19,156 +65,98 @@ pip install numpy matplotlib pillow
 
 ```
 Simulering/
-├── README.md
-├── assets/                    ← Track images (PNG, black line on white)
-│   ├── bane_fase2.png
-│   └── suzuka.png
-├── output/                    ← Optimizer results saved here (auto-created)
-└── src/
-    ├── config.py              ← ★ All parameters live here
-    ├── main.py                ← Visual simulation run
-    ├── lap_optimizer.py       ← CMA-ES / random / grid lap-time optimizer
-    ├── preview_track.py       ← Plot track with spawn + checkpoint zones
-    ├── performance_metrics.py ← RMS / settling-time calculations
-    ├── control/
-    │   └── pid_controller.py  ← PID + SpeedController
-    ├── physics/
-    │   ├── robot_model.py     ← Differential drive + motor lag + slip
-    │   └── friction.py        ← Pacejka tyre friction model
-    ├── sensors/
-    │   └── qtr_array.py       ← QTRX-HD-25RC array simulation
-    ├── track/
-    │   └── image_loader.py    ← Track image loader / resizer
-    └── visualization/
-        └── plots.py           ← Live dashboard + summary plots
+├── main.py          # entire simulation — one file, no dependencies beyond pip packages
+└── assets/
+    ├── bane_fase2.png   # default track
+    └── suzuka.png       # alternative track
 ```
 
 ---
 
-## Quick Start
+## Requirements
+
+- Python 3.9+
+- `numpy`
+- `matplotlib`
+- `Pillow`
+
+Install with:
 
 ```bash
-cd src
-
-# Visual run (default track: bane_fase2.png)
-python3 main.py
-
-# Different track
-python3 main.py --track ../assets/suzuka.png
-
-# Preview spawn point and checkpoints
-python3 preview_track.py
-python3 preview_track.py --track suzuka.png
-
-# Optimize lap time (CMA-ES, 30 generations ~recommended)
-python3 lap_optimizer.py
-python3 lap_optimizer.py --track suzuka.png --mode cmaes --iterations 50
-python3 lap_optimizer.py --mode random --iterations 40
+pip install numpy matplotlib Pillow
 ```
+
+---
+
+## Running the Simulation
+
+```bash
+# Default track (bane_fase2.png)
+python main.py
+
+# Alternative track
+python main.py --track assets/suzuka.png
+```
+
+Close the window or press `Ctrl-C` to stop.
 
 ---
 
 ## How It Works
 
-### PID + error normalisation
+### Simulation Loop
+Each timestep (`DT = 0.005 s`, 200 Hz — matches the ESP32 RC-sensor read rate) the simulator:
+1. Reads the 25-channel sensor array
+2. Estimates lateral error from a weighted average of sensor positions
+3. Feeds the normalised error (±1 = robot at edge of array) into a PID controller → angular velocity command
+4. A hysteresis speed controller slows the robot in corners
+5. Updates robot physics (first-order motor lag, dead zone, differential-drive kinematics)
+6. Renders the live dashboard every 4 steps
 
-The simulator computes a weighted centroid of sensor readings to find the line's lateral position, then normalises it:
+### Components (all in `main.py`)
 
-```
-e_norm = e_y / QTR_HALF_SPAN      # range ±1, same scale as physical readLineBlack ÷ 4000
-w_cmd  = PID(e_norm)               # rad/s steering command
-```
-
-Physical PID gains translate directly using:
-
-```
-SCALE   = 4000 counts × (2 × 2.20/255 / 0.165) = 418.28
-Kp_sim  = Kp_phys × SCALE
-Kp_phys = Kp_sim  / SCALE
-```
-
-### Wheel mix + steering clamp
-
-```python
-w_max  = 2 * v_cmd / WHEEL_BASE   # max steering before inner wheel reverses
-w_cmd  = clip(w_cmd, -w_max, w_max)
-vL_cmd = v_cmd - w_cmd * WHEEL_BASE / 2
-vR_cmd = v_cmd + w_cmd * WHEEL_BASE / 2
-```
-
-Matches physical robot behaviour — motor driver constrains each wheel PWM to `[0, MAX_PWM]`.
-
-### Speed controller state machine
-
-| State    | Condition | Speed |
-|----------|-----------|-------|
-| STRAIGHT | `\|e_norm\| < SC_ERROR_THRESHOLD` and low steering | `SC_STRAIGHT_SPEED` |
-| TURNING  | otherwise | `SC_TURN_SPEED × max(SC_MIN_SPEED_FACTOR, 1 − turn_factor)` |
-
-Speed transitions are low-pass filtered with coefficient `SC_SMOOTHING`.
-
-### Physics model
-
-- **Motor lag** — first-order lag τ = `MOTOR_TAU` (60 ms)
-- **Dead zone** — commands below `MOTOR_DEADZONE` (0.33 m/s) produce no motion
-- **Tyre slip** — Pacejka-like curve, reduced normal force from front-heavy CoM
-- **Yaw inertia** — angular velocity has its own first-order lag (~50–80 ms heading delay)
-
-### Lap validation
-
-1. Robot departs > `MIN_DEPARTURE_DIST` (0.30 m) from spawn
-2. All checkpoints cleared **in order** within `CHECKPOINT_RADIUS` (0.10 m)
-3. Robot re-enters `START_FINISH_RADIUS` (0.10 m) after ≥ `MIN_LAP_TIME` (5 s)
-
-If checkpoints are not all cleared, the finish crossing is ignored and the robot keeps running.
+| Component | Description |
+|---|---|
+| **Track loader** | Opens any grayscale PNG, auto-inverts dark backgrounds, resizes to simulation resolution |
+| **Sensor array** | 8 active channels (central 8 of 25) on a QTRX-HD-25RC, 4 mm pitch, mounted 97 mm ahead of centre. Includes Gaussian noise and 10-bit quantisation |
+| **PID controller** | Normalised error (±1 = edge of sensor array), anti-windup integral clamp, low-pass filtered derivative |
+| **Speed controller** | Hysteresis state machine — full speed on straights, scaled-down speed in corners |
+| **Robot physics** | First-order motor lag (τ = 55 ms, HP 30:1 loaded), dead zone, differential-drive kinematics |
+| **Dashboard** | Live matplotlib window — track view, 25-bar sensor chart, lateral error history, wheel speed history |
 
 ---
 
-## Configuration (`config.py`)
+## Tuning Parameters
 
-All parameters in one file. Key values:
+All parameters are at the top of `main.py` under clearly labelled sections:
 
-| Parameter | Default | Physical equivalent |
-|---|---|---|
-| `PID_KP` | 11.7 | Kp_phys = 0.028 |
-| `PID_KI` | 0.042 | Ki_phys = 0.0001 |
-| `PID_KD` | 50.1 | Kd_phys = 0.1198 |
-| `PID_LIMIT` | 23.5 rad/s | MAX_TURN = 225 PWM |
-| `PID_DERIV_FILTER` | 0.30 | LP filter α on derivative |
-| `SC_STRAIGHT_SPEED` | 0.86 m/s | baseSpeed = 100 PWM |
-| `SC_TURN_SPEED` | 0.50 m/s | must be < straight speed |
-| `SC_ERROR_THRESHOLD` | 0.25 | normalised error → TURNING mode |
-| `SC_SMOOTHING` | 0.08 | speed blend (lower = smoother) |
+| Section | Key parameters |
+|---|---|
+| **PID** | `KP`, `KI`, `KD`, `PID_LIMIT`, `INTEG_LIMIT`, `DERIV_ALPHA` |
+| **Speed** | `STRAIGHT_SPD`, `TURN_SPD`, `ERR_THRESH`, `MIN_SPD_F`, `ACCEL_RATE` |
+| **Hardware** | `WHEEL_BASE`, `WHEEL_RADIUS`, `MAX_WHEEL`, `MOTOR_TAU`, `DEADZONE` |
+| **Sensor** | `N_SENSORS`, `SPACING_M`, `SENSOR_FWD`, `NOISE_STD` |
+| **Spawn** | `SPAWNS` dict — starting position and heading for each track |
 
-After an optimizer run, paste the printed block directly into `config.py`.
-
----
-
-## Optimizer
-
-```bash
-python3 lap_optimizer.py --mode cmaes --iterations 30   # recommended
-python3 lap_optimizer.py --mode random --iterations 60  # fast baseline
-```
-
-Results are saved to `output/lap_<track>_<timestamp>.json`.
-The optimizer uses **identical** physics and lap-timer logic to `main.py`.
-
-### Converting sim gains back to physical robot
+### Tuning for ~8 s lap times
+The values below are calibrated for the physical hardware at 7.4 V. The straight speed (1.60 m/s) is ~73 % of the no-load maximum, giving a comfortable safety margin while still achieving the ~1.25 m/s average needed for an 8-second lap.
 
 ```
-Kp_phys  = PID_KP    / 418.28
-Ki_phys  = PID_KI    / 418.28
-Kd_phys  = PID_KD    / 418.28
-MAX_TURN = round(PID_LIMIT / 0.10457)   # clip to [0, 255]
+STRAIGHT_SPD = 1.60    # ramp to this on straights (m/s)
+TURN_SPD     = 0.85    # base speed through corners (m/s)
+KP           = 85.0    # proportional — main steering authority
+KI           =  0.8    # integral — corrects heading drift
+KD           =  4.5    # derivative — damps oscillation
 ```
 
 ---
 
-## Adding a New Track
+## Dashboard
 
-1. Drop image into `assets/` (black line on white, any common format)
-2. Add spawn in `config.py → SPAWN_REGISTRY`
-3. Add checkpoints in `config.py → CHECKPOINT_REGISTRY` (or leave `[]`)
-4. Run `python3 preview_track.py --track your_track.png` to verify placement
-5. Run `python3 main.py --track ../assets/your_track.png`
+| Panel | Shows |
+|---|---|
+| **Robot Live View** (left) | Track map with robot position, heading arrow, 25 sensor dots, and driven path |
+| **Sensor readings** (top right) | Bar chart of all 8 active QTRX-HD-25RC channel values (green = on line) |
+| **Lateral error** (middle right) | Rolling 5-second history of lateral error in metres |
+| **Wheel speeds** (bottom right) | Rolling 5-second history of left/right wheel speeds |
+
